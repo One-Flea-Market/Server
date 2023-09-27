@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -15,10 +17,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/api/login")
+    public ResponseEntity<?> login(@RequestBody UserDTO dto) {
 
-    public ResponseEntity<?> login() {
-        /* session 생성 처리 필요 */
-        return new ResponseEntity<>(userService.getOneUser(new UserDTO()), HttpStatus.OK);
+        UserDTO rspDto = userService.getOneUser(dto);
+        if (rspDto != null) {
+            /* session 생성 처리 필요 */
+            return new ResponseEntity<>(rspDto, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/api/join")

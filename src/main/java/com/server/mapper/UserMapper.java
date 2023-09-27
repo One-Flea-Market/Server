@@ -7,4 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 public interface UserMapper {
 
     UserDTO selectOneUser(UserDTO dto);
+
+    String selectEncPwd(UserDTO dto);
 }
