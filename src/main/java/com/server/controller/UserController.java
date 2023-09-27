@@ -1,5 +1,6 @@
 package com.server.controller;
 
+import com.server.model.UserDTO;
 import com.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ public class UserController {
 
     public ResponseEntity<?> login() {
         /* session 생성 처리 필요 */
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity<>(userService.getOneUser(new UserDTO()), HttpStatus.OK);
     }
 
     @PostMapping("/api/join")

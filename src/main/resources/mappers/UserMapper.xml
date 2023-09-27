@@ -5,7 +5,7 @@
         SELECT
             id AS id,
             username AS strUserName,
-            emil AS strEmail,
+            email AS strEmail,
             password AS strPassword,
             role AS strRole,
             phone_number AS strPhoneNumber
