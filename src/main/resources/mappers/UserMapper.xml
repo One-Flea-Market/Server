@@ -21,5 +21,8 @@
           AND email = #{strEmail}
     </select>
     
-    <!--<insert id="insert"-->
+    <insert id="joinUser" parameterType="com.server.model.UserDTO">
+        INSERT INTO member(id, username, email, password, role, phone_number)
+        VALUES (0, #{strUserName}, #{strEmail}, #{strPassword}, #{strRole}, #{strPhoneNumber})
+    </insert>
 </mapper>

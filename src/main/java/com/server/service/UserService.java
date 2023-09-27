@@ -33,4 +33,25 @@ public class UserService {
         }
         return null;
     }
+
+    public int joinUser(UserDTO dto) {
+        log.info("회원가입 시도");
+
+        dto.setStrRole("USER");
+        dto.setStrPassword(passwordEncoder.encode(dto.getStrPassword()));
+
+        int flag = 1;
+        int result = userMapper.joinUser(dto);
+
+        if(result >= 1) {
+
+            flag = 0;
+
+        } else {
+
+            flag = 1;
+        }
+
+        return flag;
+    }
 }

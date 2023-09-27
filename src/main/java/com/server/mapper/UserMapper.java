@@ -9,4 +9,6 @@ public interface UserMapper {
     UserDTO selectOneUser(UserDTO dto);
 
     String selectEncPwd(UserDTO dto);
+
+    int joinUser(UserDTO dto);
 }

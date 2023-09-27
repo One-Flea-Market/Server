@@ -3,6 +3,7 @@ package com.server.controller;
 import com.server.model.UserDTO;
 import com.server.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @Slf4j
 @RestController
@@ -33,9 +35,10 @@ public class UserController {
     }
 
     @PostMapping("/api/join")
-    public ResponseEntity<?> join() {
+    public ResponseEntity<?> join(@RequestBody UserDTO dto) {
+        int flag = userService.joinUser(dto);
 
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity<>(flag, HttpStatus.OK);
     }
 
     @PostMapping("/api/logout")
@@ -46,4 +49,16 @@ public class UserController {
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
+    @PostMapping("/api/sessionCheck")
+    public ResponseEntity<?> sessionCheck(HttpServletRequest request) {
+        String sessionFlagYN = "N";
+        request.getSession(false);
+        log.info("세션 조회 {}",request.getSession(false));
+        if(request.getSession(false) == null) {
+            sessionFlagYN = "N";
+        } else {
+            sessionFlagYN = "Y";
+        }
+        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+    }
 }
