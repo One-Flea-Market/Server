@@ -6,13 +6,11 @@
             id AS id,
             username AS strUserName,
             email AS strEmail,
-            password AS strPassword,
             role AS strRole,
             phone_number AS strPhoneNumber
         FROM member
         WHERE 1 = 1
          AND email = #{strEmail}
-         AND email = #{strPassword}
     </select>
 
     <select id="selectEncPwd" parameterType="com.server.model.UserDTO" resultType="String">
