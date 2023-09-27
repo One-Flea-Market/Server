@@ -20,4 +20,6 @@
         WHERE 1 = 1
           AND email = #{strEmail}
     </select>
+    
+    <!--<insert id="insert"-->
 </mapper>
