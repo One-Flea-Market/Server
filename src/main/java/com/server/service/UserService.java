@@ -44,14 +44,10 @@ public class UserService {
         int result = userMapper.joinUser(dto);
 
         if(result >= 1) {
-
             flag = 0;
-
         } else {
-
             flag = 1;
         }
-
         return flag;
     }
 }
