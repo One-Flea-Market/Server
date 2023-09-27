@@ -1,57 +1,24 @@
 package com.server.service;
 
-import com.server.dto.User;
-import com.server.dto.UserDto;
-import com.server.repository.UserRepository;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.server.mapper.UserMapper;
+import com.server.model.UserDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public User register(UserDto userDto) {
-        User user = new User();
-        user.setPassword(userDto.getPassword());
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        user.setRole(userDto.getRole());
-        user.setPhone_number(userDto.getPhone_number());
-        return userRepository.save(user);
-    }
-
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    public User findUser(int id) {
-        return userRepository.findById(id).orElseThrow(()-> {
-            return new IllegalArgumentException("User ID를 찾을 수 없습니다.");
-        });
+    /* 로그인 시 유저가 DB에 있는지 검증 */
+    public UserDTO getOneUser (UserDTO dto) {
+        log.info("로그인 시도 후 유저 검증 시작");
+        log.info("로그인 시도 후 유저 검증 종료");
+        return null;
     }
 }
-
-
