@@ -13,11 +13,10 @@
         VALUES
             (
              0,
-             #{strUserName},
-             #{strEmail},
-             #{strPassword},
-             #{strRole},
-             #{strPhoneNumber}
+             #{strTitle},
+             #{strDate},
+             #{strContent},
+             #{userId}
              )
     </insert>
 </mapper>
