@@ -8,7 +8,7 @@
             USER_EMAIL AS strEmail,
             USER_ROLE AS strRole,
             USER_PHONE AS strPhoneNumber
-        FROM member
+        FROM USER
         WHERE 1 = 1
          AND USER_EMAIL = #{strEmail}
     </select>
@@ -16,13 +16,13 @@
     <select id="selectEncPwd" parameterType="com.server.model.UserDTO" resultType="String">
         SELECT
             USER_PW AS strPassword
-        FROM member
+        FROM USER
         WHERE 1 = 1
           AND USER_EMAIL = #{strEmail}
     </select>
     
     <insert id="joinUser" parameterType="com.server.model.UserDTO">
-        INSERT INTO member
+        INSERT INTO USER
             (
              USER_ID,
              USER_NAME,

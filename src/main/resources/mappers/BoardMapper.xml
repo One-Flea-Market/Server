@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.server.mapper.BoardMapper">
+    <insert id="write" parameterType="com.server.model.BoardDTO">
+        INSERT INTO FREE_BOARD
+            (
+             BOARD_SEQ,
+             BOARD_TITLE,
+             BOARD_DATE,
+             BOARD_CONTENT,
+             USER_ID
+             )
+        VALUES
+            (
+             0,
+             #{strUserName},
+             #{strEmail},
+             #{strPassword},
+             #{strRole},
+             #{strPhoneNumber}
+             )
+    </insert>
+</mapper>
