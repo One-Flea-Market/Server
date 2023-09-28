@@ -3,33 +3,33 @@
 <mapper namespace="com.server.mapper.UserMapper">
     <select id="selectOneUser" parameterType="com.server.model.UserDTO" resultType="com.server.model.UserDTO">
         SELECT
-            id AS id,
-            username AS strUserName,
-            email AS strEmail,
-            role AS strRole,
-            phone_number AS strPhoneNumber
+            USER_ID AS id,
+            USER_NAME AS strUserName,
+            USER_EMAIL AS strEmail,
+            USER_ROLE AS strRole,
+            USER_PHONE AS strPhoneNumber
         FROM member
         WHERE 1 = 1
-         AND email = #{strEmail}
+         AND USER_EMAIL = #{strEmail}
     </select>
 
     <select id="selectEncPwd" parameterType="com.server.model.UserDTO" resultType="String">
         SELECT
-            password AS strPassword
+            USER_PW AS strPassword
         FROM member
         WHERE 1 = 1
-          AND email = #{strEmail}
+          AND USER_EMAIL = #{strEmail}
     </select>
     
     <insert id="joinUser" parameterType="com.server.model.UserDTO">
         INSERT INTO member
             (
-             id,
-             username,
-             email,
-             password,
-             role,
-             phone_number
+             USER_ID,
+             USER_NAME,
+             USER_EMAIL,
+             USER_PW,
+             USER_ROLE,
+             USER_PHONE
              )
         VALUES
             (

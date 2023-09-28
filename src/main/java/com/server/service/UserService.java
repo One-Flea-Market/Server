@@ -66,16 +66,15 @@ public class UserService {
 
     public String mailSender(String email) {
         int authNumber = makeRandomNumber();
-        log.info("인증번호 : {}", authNumber);
 
-            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-            simpleMailMessage.setTo(email);
-            simpleMailMessage.setFrom(UserService.FROM_ADDRESS);
-            simpleMailMessage.setSubject("[ 원플리웹 ] 학교 메일 인증번호 입니다.");
-            simpleMailMessage.setText(" 메일 인증번호 입니다. 인증번호 : " + authNumber);
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setTo(email);
+        simpleMailMessage.setFrom(UserService.FROM_ADDRESS);
+        simpleMailMessage.setSubject("[ 원플리웹 ] 학교 메일 인증번호 입니다.");
+        simpleMailMessage.setText(" 메일 인증번호 입니다. 인증번호 : " + authNumber);
 
-            mailSender.send(simpleMailMessage);
+        mailSender.send(simpleMailMessage);
 
-            return  Integer.toString(authNumber);
+        return  Integer.toString(authNumber);
     }
 }
