@@ -6,12 +6,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @Slf4j
@@ -19,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
+    @Autowired
     private final UserService userService;
 
     @PostMapping("/api/login")
@@ -60,5 +59,14 @@ public class UserController {
             sessionFlagYN = "Y";
         }
         return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+    }
+
+    @PostMapping("/api/emailCheck")
+    public ResponseEntity<?> emailCheck(@RequestBody String email) {
+        log.info("이메일 확인1 {}", email);
+        String systemAuthNumber = userService.mailSender(email);
+        log.info("이메일 확인2 {}", email);
+        log.info("인증 번호 : {}", systemAuthNumber);
+        return new ResponseEntity<>(systemAuthNumber, HttpStatus.OK);
     }
 }
