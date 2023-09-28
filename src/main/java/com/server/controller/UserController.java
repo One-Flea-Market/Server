@@ -62,7 +62,7 @@ public class UserController {
     }
 
     @PostMapping("/api/emailCheck")
-    public ResponseEntity<?> emailCheck(@RequestBody String email) {
+    public ResponseEntity<?> emailCheck(@RequestParam String email) {
         log.info("이메일 확인1 {}", email);
         String systemAuthNumber = userService.mailSender(email);
         log.info("이메일 확인2 {}", email);
