@@ -14,6 +14,7 @@ public class BoardService {
     private final BoardMapper boardMapper;
 
     public int write(BoardDTO dto) {
+        log.info("dto : {}", dto);
 
         int flag = 1;
         int result = boardMapper.write(dto);

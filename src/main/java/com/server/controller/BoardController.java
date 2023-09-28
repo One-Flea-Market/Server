@@ -23,18 +23,22 @@ public class BoardController {
     private final UserController userController;
 
     @PostMapping("/board/write")
-    public ResponseEntity<?> boardWrite(@RequestBody BoardDTO dto, HttpServletRequest request) {
+    public ResponseEntity<?> boardWrite(@RequestBody BoardDTO dto, HttpSession session) {
+        String sessionFlagYN = "N";
 
-        HttpSession session = request.getSession();
+        if(session.getAttribute("dto") == null) {
+            sessionFlagYN = "N";
+        } else { // 세션이 있으면 여길 탈듯
+            /* 게시글 작성 서비스 호출 */
+             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+             log.info("session user : {}", session.getAttribute("dto"));
+             dto.setUserId(reqDto.getId());
+             int flag = boardService.write(dto);
 
-        log.info("세션 {} ", userController.sessionCheck(request));
-        /*
-        if(session != null) {
-            int flag = boardService.write(dto);
-            return new ResponseEntity<>(flag, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.OK);
-        }*/
-        return new ResponseEntity<>(null, HttpStatus.OK);
+             /* 게시글 작성완료는 0 아니면 1 */
+             return new ResponseEntity<>(flag, HttpStatus.OK);
+        }
+        /* 세션이 없으면 N */
+        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
     }
 }
