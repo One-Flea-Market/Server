@@ -41,4 +41,20 @@
              #{strPhoneNumber}
              )
     </insert>
+
+    <select id="emailCheck" parameterType="com.server.model.UserDTO" resultType="String">
+        SELECT
+            USER_EMAIL
+        FROM USER
+        WHERE 1 = 1
+          AND USER_EMAIL = #{strEmail}
+    </select>
+
+    <select id="nameCheck" parameterType="com.server.model.UserDTO" resultType="String">
+        SELECT
+            USER_NAME
+        FROM USER
+        WHERE 1 = 1
+          AND USER_NAME = #{strName}
+    </select>
 </mapper>

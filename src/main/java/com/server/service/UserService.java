@@ -21,7 +21,7 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private static final String FROM_ADDRESS = "hscapstone1@gmail.com"; // 이부분도 너희 캡스톤 쥐메일 ㄱㄱ
+    private static final String FROM_ADDRESS = "hscapstone1@gmail.com";
     @Autowired
     private JavaMailSender mailSender;
 
@@ -42,6 +42,7 @@ public class UserService {
         return null;
     }
 
+    /* 회원가입 */
     public int joinUser(UserDTO dto) {
         log.info("회원가입 시도");
 
@@ -59,11 +60,27 @@ public class UserService {
         return flag;
     }
 
+    /* 이메일 중복 체크 */
+    public String emailCheck(String email) {
+        String result = userMapper.emailCheck(email);
+        log.info("result 로그 (userService) {}", result);
+        return result;
+    }
+
+    /* 닉네임 중복 체크 */
+    public String nameCheck(String name) {
+        String result = userMapper.nameCheck(name);
+        log.info("result 로그 (userService) {}", result);
+        return result;
+    }
+
+    /* 이메일 인증 위한 랜덤 인증번호 생성 */
     private int makeRandomNumber() {
         Random random = new Random();
         return random.nextInt(999999);
     }
 
+    /* 이메일 인증 */
     public String mailSender(String email) {
         int authNumber = makeRandomNumber();
 

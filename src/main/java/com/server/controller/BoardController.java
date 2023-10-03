@@ -3,7 +3,6 @@ package com.server.controller;
 import com.server.model.BoardDTO;
 import com.server.model.UserDTO;
 import com.server.service.BoardService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class BoardController {
 
     private final BoardService boardService;
-
-    private final UserController userController;
 
     @PostMapping("/board/write")
     public ResponseEntity<?> boardWrite(@RequestBody BoardDTO dto, HttpSession session) {
