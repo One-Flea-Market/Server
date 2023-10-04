@@ -58,7 +58,7 @@ public class UserController {
     }
 
     /* 세션 체크 */
-    @PostMapping("/check")
+    @GetMapping("/check")
     public ResponseEntity<?> sessionCheck(HttpServletRequest request) {
         boolean sessionFlagYN = false;
         request.getSession(false);
