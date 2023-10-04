@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UserMapper {
 
+    /* User 객체 하나 찾기 (조건 strEmail) */
     UserDTO selectOneUser(UserDTO dto);
 
     String selectEncPwd(UserDTO dto);

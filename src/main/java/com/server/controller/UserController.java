@@ -88,12 +88,12 @@ public class UserController {
 
             return new ResponseEntity<>(messageRes, headers, HttpStatus.OK);
         } else {
-            //String systemAuthNumber = userService.mailSender(email);
-            //log.info("인증 번호 : {}", systemAuthNumber);
+            String systemAuthNumber = userService.mailSender(email);
+            log.info("인증 번호 : {}", systemAuthNumber);
 
             messageRes.setResult(true);
-            messageRes.setAuth("systemAuthNumber");
-            //messageRes.setAuth(systemAuthNumber);
+            //messageRes.setAuth("systemAuthNumber");
+            messageRes.setAuth(systemAuthNumber);
 
             return new ResponseEntity<>(messageRes, headers, HttpStatus.CREATED);
         }
@@ -123,4 +123,28 @@ public class UserController {
         }
     }
 
+    @GetMapping("/admin")
+    public ResponseEntity<?> mypageView(@RequestParam String email, HttpSession session) {
+
+        log.info("읽어온 email  {}", email);
+        if (email == null) {
+            log.info("mypage 호출 실패!!");
+            return new ResponseEntity<>("{\"login\":false}", HttpStatus.OK);
+
+        }
+
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+
+        log.info("읽어온 reqDto  {}", reqDto);
+
+        if (reqDto != null && Objects.equals(reqDto.getStrEmail(), email)) {
+            log.info("mypage 호출 성공!!");
+            UserDTO userDTO = userService.mypage(reqDto);
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+
+        } else {
+            log.info("mypage 호출 실패!!");
+            return new ResponseEntity<>("{\"login\":false}", HttpStatus.OK);
+            }
+    }
 }

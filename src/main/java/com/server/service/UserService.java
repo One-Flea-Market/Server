@@ -94,4 +94,12 @@ public class UserService {
 
         return  Integer.toString(authNumber);
     }
+
+    /* 마이페이지 정보 확인 */
+    public UserDTO mypage(UserDTO dto) {
+
+        UserDTO rspDto = userMapper.selectOneUser(dto);
+
+        return rspDto;
+    }
 }
