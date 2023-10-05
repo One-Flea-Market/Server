@@ -129,7 +129,7 @@ public class UserController {
         log.info("읽어온 email  {}", email);
         if (email == null) {
             log.info("mypage 호출 실패!!");
-            return new ResponseEntity<>("{\"login\":false}", HttpStatus.OK);
+            return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
 
         }
 
@@ -144,7 +144,7 @@ public class UserController {
 
         } else {
             log.info("mypage 호출 실패!!");
-            return new ResponseEntity<>("{\"login\":false}", HttpStatus.OK);
+            return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
             }
     }
 }

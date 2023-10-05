@@ -2,15 +2,17 @@ package com.server.model;
 
 import lombok.*;
 
+import java.util.List;
+
 @Data
 public class MessageResF {
-    private boolean result;
+    private boolean next;
     private String message;
-    private Object auth;
+    private List noticeList;
 
     public MessageResF() {
-        this.result = false;
+        this.next = false;
         this.message = null;
-        this.auth = null;
+        this.noticeList = null;
     }
 }

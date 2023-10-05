@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.server.mapper.HomeMapper">
+    <insert id="write" parameterType="com.server.model.NoticeDTO">
+        INSERT INTO NOTICE
+            (
+             NOTICE_SEQ,
+             NOTICE_TITLE,
+             NOTICE_DATE,
+             NOTICE_CONTENT
+             )
+        VALUES
+            (
+             0,
+             #{strNoticeTitle},
+             #{strNoticeDate},
+             #{strNoticeContent},
+             )
+    </insert>
+
+    <select id="getNoticeCount" parameterType="com.server.model.NoticeDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            NOTICE
+    </select>
+
+    <select id="getNoticeById" parameterType="int" resultType="com.server.model.NoticeDTO">
+        SELECT
+             NOTICE_SEQ AS noticeSeq,
+             NOTICE_TITLE AS strNoticeTitle,
+             NOTICE_DATE AS strNoticeDate,
+             NOTICE_CONTENT AS strNoticeContent
+        FROM
+            NOTICE
+        WHERE 1 = 1
+        AND NOTICE_SEQ = #{id}
+    </select>
+</mapper>
