@@ -2,9 +2,12 @@ package com.server.service;
 
 import com.server.mapper.BoardMapper;
 import com.server.model.BoardDTO;
+import com.server.model.NoticeDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -27,4 +30,17 @@ public class BoardService {
         return flag;
     }
 
+    public int getBoardCount() {
+        return boardMapper.getBoardCount();
+    }
+
+    public List<BoardDTO> getBoard(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+        return boardMapper.getBoard(offset, pageSize);
+    }
+
+    public BoardDTO getBoardById(int id) {
+        return boardMapper.getBoardById(id);
+    }
 }

@@ -5,12 +5,12 @@ import lombok.*;
 import java.util.List;
 
 @Data
-public class MessageResF {
+public class MessageResNotice {
     private boolean next;
     private String message;
     private List noticeList;
 
-    public MessageResF() {
+    public MessageResNotice() {
         this.next = false;
         this.message = null;
         this.noticeList = null;

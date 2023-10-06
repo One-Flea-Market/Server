@@ -19,4 +19,36 @@
              #{userId}
              )
     </insert>
+
+    <select id="getBoardCount" parameterType="com.server.model.BoardDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            FREE_BOARD
+    </select>
+
+    <select id="getBoardById" parameterType="int" resultType="com.server.model.BoardDTO">
+        SELECT
+            BOARD_SEQ AS boardSeq,
+            BOARD_TITLE AS strTitle,
+            BOARD_DATE AS strDate,
+            BOARD_CONTENT AS strContent,
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        WHERE 1 = 1
+          AND BOARD_SEQ = #{id}
+    </select>
+
+    <select id="getBoard" parameterType="int" resultType="com.server.model.BoardDTO">
+        SELECT
+            BOARD_SEQ AS boardSeq,
+            BOARD_TITLE AS strTitle,
+            BOARD_DATE AS strDate,
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        ORDER BY BOARD_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+    </select>
 </mapper>

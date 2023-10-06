@@ -1,9 +1,8 @@
 package com.server.controller;
 
 
-import com.server.model.MessageResF;
+import com.server.model.MessageResNotice;
 import com.server.model.NoticeDTO;
-import com.server.repository.NoticeDAO;
 import com.server.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.Charset;
@@ -76,8 +74,8 @@ public class HomeController {
     /* 객체안 notice 원소의 배열의 길이는 몇개씩 보내도 상관없음(가능하면 10개 정도로 잘라서 보내기)
         next 는 앞서보여준 10개를 제외하고 보여줄 공지가 더있으면 true 없으면 false */
     @GetMapping("/notice")
-    public ResponseEntity<MessageResF> noticeView1() {
-        MessageResF messageResF = new MessageResF();
+    public ResponseEntity<MessageResNotice> noticeView() {
+        MessageResNotice messageResNotice = new MessageResNotice();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
 
@@ -89,24 +87,24 @@ public class HomeController {
 
         while((page - 1) * pageSize <= count) {
             log.info("while 문 안의 page : {}", page);
-            messageResF.setNoticeList(homeService.getNotice(page, pageSize));
-            log.info("NoticeList : {}", messageResF.getNoticeList());
+            messageResNotice.setNoticeList(homeService.getNotice(page, pageSize));
+            log.info("NoticeList : {}", messageResNotice.getNoticeList());
             if (count >= (page - 1) * pageSize) {
-                messageResF.setNext(true);
+                messageResNotice.setNext(true);
                 flag = page * pageSize;
                 page++;
                 log.info(" flag : {}", flag);
                 if (count <= flag) {
-                    messageResF.setNext(false);
+                    messageResNotice.setNext(false);
                 }
             } else {
-                messageResF.setNext(false);
+                messageResNotice.setNext(false);
             }
-            log.info("컬럼이 더 있는가? : {}", messageResF.isNext());
+            log.info("컬럼이 더 있는가? : {}", messageResNotice.isNext());
         }
         log.info("while 문 밖의 page : {}", page);
 
-        return new ResponseEntity<>(messageResF, headers, HttpStatus.OK);
+        return new ResponseEntity<>(messageResNotice, headers, HttpStatus.OK);
     }
 
     /* 메인페이지 Carousel 이미지 */

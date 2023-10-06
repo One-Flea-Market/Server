@@ -1,16 +1,12 @@
 package com.server.service;
 
-import com.server.mapper.BoardMapper;
 import com.server.mapper.HomeMapper;
-import com.server.model.BoardDTO;
 import com.server.model.NoticeDTO;
 import com.server.repository.NoticeDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.JDBCType;
 import java.util.List;
 
 @Service
