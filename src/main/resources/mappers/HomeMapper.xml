@@ -14,7 +14,7 @@
              0,
              #{strNoticeTitle},
              #{strNoticeDate},
-             #{strNoticeContent},
+             #{strNoticeContent}
              )
     </insert>
 
@@ -37,9 +37,26 @@
         AND NOTICE_SEQ = #{id}
     </select>
 
-    <select id="getNoticeByPage" parameterType="Map" resultType="com.server.model.NoticeDTO">
-        SELECT *
-        FROM NOTICE
-        LIMIT #{offset}, #{pageSize}
+    <select id="getNotice" parameterType="int" resultType="com.server.model.NoticeDTO">
+        SELECT
+            NOTICE_SEQ AS noticeSeq,
+            NOTICE_TITLE AS strNoticeTitle,
+            NOTICE_DATE AS strNoticeDate,
+            NOTICE_CONTENT AS strNoticeContent
+        FROM
+            NOTICE
+        ORDER BY NOTICE_SEQ DESC
+            LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="getHomeNotice" parameterType="String" resultType="com.server.model.NoticeDTO">
+        SELECT
+            NOTICE_SEQ AS noticeSeq,
+            NOTICE_TITLE AS strNoticeTitle,
+            NOTICE_DATE AS strNoticeDate
+        FROM
+            NOTICE
+        ORDER BY NOTICE_DATE DESC
+        LIMIT 3
     </select>
 </mapper>

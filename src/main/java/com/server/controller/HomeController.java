@@ -37,8 +37,9 @@ public class HomeController {
     /* 메인 화면에서 보여지는 공지사항 리스트 (최신순으로 3개만 보내기) */
     @GetMapping("/home/notice")
     public ResponseEntity<?> homeNoticeView() {
-
-        return new ResponseEntity<>("Home 화면 Notice 리스트", HttpStatus.OK);
+        List<NoticeDTO> result = homeService.getHomeNotice();
+        log.info("가장 최근에 게시된 공지 : {}", result);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /* 공지사항 작성 */

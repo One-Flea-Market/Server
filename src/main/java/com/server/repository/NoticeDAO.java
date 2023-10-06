@@ -25,20 +25,36 @@ public class NoticeDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /* 공지사항 리스트 */
     public List<NoticeDTO> getNotice(int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         log.info("offset : {}", offset);
 
         String sql = "SELECT * FROM NOTICE LIMIT "+offset+", "+pageSize;
-        return jdbcTemplate.query(sql, (resultSet, rowNum) -> mapRowToYourEntity(resultSet));
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> noticeEntity(resultSet));
     }
-
-    private NoticeDTO mapRowToYourEntity(ResultSet resultSet) throws SQLException {
+    private NoticeDTO noticeEntity(ResultSet resultSet) throws SQLException {
         NoticeDTO entity = new NoticeDTO();
         entity.setNoticeSeq(resultSet.getInt("NOTICE_SEQ"));
         entity.setStrNoticeTitle(resultSet.getString("NOTICE_TITLE"));
         entity.setStrNoticeDate(resultSet.getString("NOTICE_DATE"));
         entity.setStrNoticeContent(resultSet.getString("NOTICE_CONTENT"));
+        // Set other properties as needed
+        log.info("entity : {}", entity);
+
+        return entity;
+    }
+
+    /* HOME 화면 공지사항 리스트 [가장 최신 3개] */
+    public List<NoticeDTO> getHomeNotice() {
+        String sql = "SELECT * FROM NOTICE ORDER BY NOTICE_DATE DESC LIMIT 3";
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> homeNoticeEntity(resultSet));
+    }
+    private NoticeDTO homeNoticeEntity(ResultSet resultSet) throws SQLException {
+        NoticeDTO entity = new NoticeDTO();
+        entity.setNoticeSeq(resultSet.getInt("NOTICE_SEQ"));
+        entity.setStrNoticeTitle(resultSet.getString("NOTICE_TITLE"));
+        entity.setStrNoticeDate(resultSet.getString("NOTICE_DATE"));
         // Set other properties as needed
         log.info("entity : {}", entity);
 

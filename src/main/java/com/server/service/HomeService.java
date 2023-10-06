@@ -36,9 +36,14 @@ public class HomeService {
         return flag;
     }
 
-    /* 공지사항 리스트 서비스 */
-    public List<NoticeDTO> getNotice(int page, int pageSize) {
+    /* 공지사항 리스트 서비스 JDBC 템플릿 */
+    public List<NoticeDTO> getNotice_JDBC(int page, int pageSize) {
         return noticeDAO.getNotice(page, pageSize);
+    }
+
+    /* 공지사항 리스트 서비스 MyBatis */
+    public List<NoticeDTO> getNotice(int page, int pageSize) {
+        return homeMapper.getNotice(page, pageSize);
     }
 
     /* 공지사항 리스트 카운트 */
@@ -49,6 +54,10 @@ public class HomeService {
     /* 요청받은 id로 공지사항 조회 */
     public NoticeDTO getNoticeById(int id) {
         return homeMapper.getNoticeById(id);
+    }
+
+    public List<NoticeDTO> getHomeNotice() {
+        return homeMapper.getHomeNotice();
     }
 
 }
