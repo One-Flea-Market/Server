@@ -37,8 +37,8 @@ public class HomeService {
     }
 
     /* 공지사항 리스트 서비스 */
-    public List<NoticeDTO> getNotice() {
-        return noticeDAO.getNotice();
+    public List<NoticeDTO> getNotice(int page, int pageSize) {
+        return noticeDAO.getNotice(page, pageSize);
     }
 
     /* 공지사항 리스트 카운트 */
@@ -50,4 +50,5 @@ public class HomeService {
     public NoticeDTO getNoticeById(int id) {
         return homeMapper.getNoticeById(id);
     }
+
 }

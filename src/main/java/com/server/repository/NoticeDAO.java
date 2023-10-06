@@ -2,6 +2,7 @@ package com.server.repository;
 
 import com.server.mapper.HomeMapper;
 import com.server.model.NoticeDTO;
+import com.server.service.HomeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,8 +25,11 @@ public class NoticeDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<NoticeDTO> getNotice() {
-        String sql = "SELECT * FROM NOTICE LIMIT 0, 10";
+    public List<NoticeDTO> getNotice(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+
+        String sql = "SELECT * FROM NOTICE LIMIT "+offset+", "+pageSize;
         return jdbcTemplate.query(sql, (resultSet, rowNum) -> mapRowToYourEntity(resultSet));
     }
 
@@ -36,6 +40,8 @@ public class NoticeDAO {
         entity.setStrNoticeDate(resultSet.getString("NOTICE_DATE"));
         entity.setStrNoticeContent(resultSet.getString("NOTICE_CONTENT"));
         // Set other properties as needed
+        log.info("entity : {}", entity);
+
         return entity;
     }
 }

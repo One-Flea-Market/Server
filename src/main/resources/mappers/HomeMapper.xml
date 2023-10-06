@@ -36,4 +36,10 @@
         WHERE 1 = 1
         AND NOTICE_SEQ = #{id}
     </select>
+
+    <select id="getNoticeByPage" parameterType="Map" resultType="com.server.model.NoticeDTO">
+        SELECT *
+        FROM NOTICE
+        LIMIT #{offset}, #{pageSize}
+    </select>
 </mapper>
