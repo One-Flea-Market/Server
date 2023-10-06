@@ -45,7 +45,7 @@
             NOTICE_CONTENT AS strNoticeContent
         FROM
             NOTICE
-        ORDER BY NOTICE_SEQ DESC
+        ORDER BY NOTICE_SEQ ASC
             LIMIT #{offset}, #{pageSize}
     </select>
 

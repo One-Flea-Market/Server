@@ -43,7 +43,9 @@ public class HomeService {
 
     /* 공지사항 리스트 서비스 MyBatis */
     public List<NoticeDTO> getNotice(int page, int pageSize) {
-        return homeMapper.getNotice(page, pageSize);
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+        return homeMapper.getNotice(offset, pageSize);
     }
 
     /* 공지사항 리스트 카운트 */

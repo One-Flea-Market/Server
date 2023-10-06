@@ -90,6 +90,7 @@ public class HomeController {
         while((page - 1) * pageSize <= count) {
             log.info("while 문 안의 page : {}", page);
             messageResF.setNoticeList(homeService.getNotice(page, pageSize));
+            log.info("NoticeList : {}", messageResF.getNoticeList());
             if (count >= (page - 1) * pageSize) {
                 messageResF.setNext(true);
                 flag = page * pageSize;
