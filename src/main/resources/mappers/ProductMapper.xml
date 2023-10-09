@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.server.mapper.ProductMapper">
+    <insert id="insertProduct" parameterType="com.server.model.ProductDTO">
+        INSERT INTO PRODUCT
+        (
+            PRODUCT_SEQ,
+            PRODUCT_TITLE,
+            PRODUCT_STATUS,
+            PRODUCT_CONTENT,
+            PRODUCT_DATE,
+            PRODUCT_PRICE,
+            PRODUCT_LINK,
+            USER_ID,
+            ONLIKE
+        )
+        VALUES
+            (
+            0,
+            #{strProductTitle},
+            #{strProductStatus},
+            #{strProductContent},
+            #{strProductDate},
+            #{strProductPrice},
+            #{strProductLink},
+            #{userId},
+            0
+            )
+    </insert>
+
+    <select id="getProductById" parameterType="int" resultType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS productSeq ,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_CONTENT AS strProductContent,
+            PRODUCT_DATE AS strProductDate,
+            PRODUCT_PRICE AS strProductPrice,
+            PRODUCT_LINK AS strProductLink,
+            USER_ID AS userId,
+            ONLIKE AS onLike
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{id}
+    </select>
+
+    <select id="getUserIdByProductSeq" parameterType="int" resultType="int">
+        SELECT
+            USER_ID AS userId
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{productSeq}
+    </select>
+
+    <update id="modifyProduct" parameterType="Map">
+        <![CDATA[
+        UPDATE PRODUCT
+        SET
+            PRODUCT_TITLE = #{strProductTitle},
+            PRODUCT_STATUS = #{strProductStatus},
+            PRODUCT_CONTENT = #{strProductContent},
+            PRODUCT_DATE = #{strProductDate},
+            PRODUCT_PRICE = #{strProductPrice},
+            PRODUCT_LINK = #{strProductLink},
+            ONLIKE = #{onLike}
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{id}
+        ]]>
+    </update>
+
+    <update id="updateProductLike" parameterType="Map">
+    <![CDATA[
+        UPDATE PRODUCT
+        SET
+            ONLIKE = #{onLike}
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{id}
+        ]]>
+</update>
+</mapper>

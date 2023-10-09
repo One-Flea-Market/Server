@@ -1,7 +1,7 @@
 package com.server.controller;
 
 
-import com.server.model.MessageResNotice;
+import com.server.response.MessageResNotice;
 import com.server.model.NoticeDTO;
 import com.server.service.HomeService;
 import lombok.RequiredArgsConstructor;

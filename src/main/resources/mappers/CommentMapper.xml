@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.server.mapper.CommentMapper">
+    <insert id="writeComment" parameterType="com.server.model.CommentDTO">
+        INSERT INTO COMMENT
+            (
+             COMMENT_SEQ,
+             COMMENT_BODY,
+             COMMENT_DATE,
+             USER_ID,
+             BOARD_SEQ
+             )
+        VALUES
+            (
+             0,
+             #{commentBody},
+             #{commentDate},
+             #{userId},
+             #{boardSeq}
+             )
+    </insert>
+
+    <select id="getBoardCount" parameterType="com.server.model.CommentDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            FREE_BOARD
+    </select>
+
+    <select id="getBoardById" parameterType="int" resultType="com.server.model.CommentDTO">
+        SELECT
+            BOARD_SEQ AS boardSeq,
+            BOARD_TITLE AS strTitle,
+            BOARD_DATE AS strDate,
+            BOARD_CONTENT AS strContent,
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        WHERE 1 = 1
+          AND BOARD_SEQ = #{id}
+    </select>
+
+    <select id="getComment" resultType="com.server.model.CommentDTO">
+        SELECT
+            COMMENT_SEQ AS commentSeq,
+            COMMENT_BODY AS commentBody,
+            COMMENT_DATE AS commentDate,
+            USER_ID AS userId,
+            BOARD_SEQ AS boardSeq
+        FROM
+            COMMENT
+        WHERE BOARD_SEQ = #{boardSeq}
+    </select>
+
+    <select id="getBoardBySearch" parameterType="Map" resultType="com.server.model.CommentDTO">
+        <![CDATA[
+        SELECT
+            BOARD_SEQ AS boardSeq,
+            BOARD_TITLE AS strTitle,
+            BOARD_DATE AS strDate,
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        WHERE BOARD_TITLE LIKE UPPER(#{search})
+        ORDER BY BOARD_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+        ]]>
+    </select>
+    
+    <update id="modifyComment" parameterType="Map">
+        <![CDATA[
+        UPDATE COMMENT
+        SET
+            COMMENT_BODY = #{commentBody},
+            COMMENT_DATE = #{commentDate}
+        WHERE
+            BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
+        ]]>
+    </update>
+
+    <delete id="deleteComment" parameterType="int">
+        <![CDATA[
+        DELETE FROM COMMENT
+        WHERE BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
+        ]]>
+    </delete>
+</mapper>

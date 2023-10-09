@@ -1,6 +1,6 @@
 package com.server.controller;
 
-import com.server.model.MessageRes;
+import com.server.response.MessageRes;
 import com.server.model.UserDTO;
 import com.server.service.UserService;
 import jakarta.servlet.http.HttpSession;

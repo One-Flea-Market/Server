@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.server.mapper.BoardMapper">
-    <insert id="write" parameterType="com.server.model.BoardDTO">
+    <insert id="writeBoard" parameterType="com.server.model.BoardDTO">
         INSERT INTO FREE_BOARD
             (
              BOARD_SEQ,
@@ -51,4 +51,38 @@
         ORDER BY BOARD_SEQ ASC
             LIMIT #{offset}, #{pageSize}
     </select>
+
+    <select id="getBoardBySearch" parameterType="Map" resultType="com.server.model.BoardDTO">
+        <![CDATA[
+        SELECT
+            BOARD_SEQ AS boardSeq,
+            BOARD_TITLE AS strTitle,
+            BOARD_DATE AS strDate,
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        WHERE BOARD_TITLE LIKE UPPER(#{search})
+        ORDER BY BOARD_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+        ]]>
+    </select>
+    
+    <update id="modifyBoard" parameterType="Map">
+        <![CDATA[
+        UPDATE FREE_BOARD
+        SET
+            BOARD_TITLE = #{strTitle},
+            BOARD_DATE = #{strDate},
+            BOARD_CONTENT = #{strContent}
+        WHERE
+            BOARD_SEQ = #{id}
+        ]]>
+    </update>
+
+    <delete id="deleteBoard" parameterType="int">
+        <![CDATA[
+        DELETE FROM FREE_BOARD
+        WHERE BOARD_SEQ = #{id}
+        ]]>
+    </delete>
 </mapper>
