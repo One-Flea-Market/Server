@@ -16,4 +16,5 @@ public interface BoardMapper {
     List<BoardDTO> getBoardBySearch(@Param("search") String search, @Param("offset") int offset, @Param("pageSize") int pageSize);
     int modifyBoard(Map<String, Object> map);
     int deleteBoard(int id);
+    int getUserIdByBoardSeq(int id);
 }

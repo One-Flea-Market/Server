@@ -1,10 +1,10 @@
 package com.server.controller;
 
+import com.server.model.BoardCommentDTO;
 import com.server.model.BoardDTO;
-import com.server.model.CommentDTO;
+import com.server.model.ProductCommentDTO;
 import com.server.response.MessageResBoard;
 import com.server.model.UserDTO;
-import com.server.response.MessageResNotice;
 import com.server.service.BoardService;
 import com.server.service.CommentService;
 import jakarta.servlet.http.HttpSession;
@@ -197,160 +197,193 @@ public class BoardController {
 
     /* 게시글 삭제 */
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<MessageResBoard> deleteBoard(@PathVariable int id,
-                                                       BoardDTO dto, HttpSession session) {
+    public ResponseEntity<Object> deleteBoard(@PathVariable int id, HttpSession session) {
 
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        log.info("게시글 id : {}", id);
+            Map<String, Object> response = new HashMap<>();
 
-        String sessionFlagYN = "N";
+            if(session.getAttribute("dto") == null) {
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "로그인 상태가 아닙니다.");
+            } else { // 세션이 있으면 여길 탈듯
+                /* 상품 조회 서비스 호출 */
+                UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+                log.info("session user : {}", session.getAttribute("dto"));
+                int userId = reqDto.getId();    // 세션에서 가져온 유저 id
+                int idUser = boardService.getUserIdByBoardSeq(id);  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
-        if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
-        } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 삭제 서비스 호출 */
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setUserId(reqDto.getId());
+            log.info("로그인 중인 유저 Id : {}", userId);
+            log.info("게시글 등록한 유저 Id : {}", idUser);
 
-            int flag = boardService.deleteBoard(id);
+            if(userId == idUser) {
+                int flag = boardService.deleteBoard(id);
 
-            if(flag == 0) {
-                messageResBoard.setResult(true);
+                if(flag == 0) {
+                    log.info("성공");
+                    response.put("result", true);
+                } else {
+                    log.info("실패");
+                    response.put("result", false);
+                    response.put("message", "모종의 이유로 삭제에 실패했습니다.");
+                }
             } else {
-                messageResBoard.setResult(false);
-                messageResBoard.setMessage("게시글 삭제에 실패했습니다.");
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "본인이 게시한 게시글이 아닙니다.");
             }
-            /* 게시글 삭제 완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     /* 댓글 조회 */
     @GetMapping("/{id}/comment")
-    public ResponseEntity<List<CommentDTO>> commentOnBoard(@PathVariable int id) {
-        log.info("{}", id);
-        BoardDTO dto = boardService.getBoardById(id);
+    public ResponseEntity<List<BoardCommentDTO>> commentOnProduct(@PathVariable int id, HttpSession session) {
+        log.info("상품 id : {}", id);
+        Map<String, Object> response = new HashMap<>();
 
-        log.info("{}", dto);
-        if (dto == null) {
-            // 게시글이 없을 경우 404 Not Found 응답을 보냄
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
+        }
+
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+        List<BoardCommentDTO> reqDtoBoard = commentService.getBoardComment(id);
+        log.info("session user : {}", session.getAttribute("dto"));
+        log.info("Get Board Comment : {}", reqDtoBoard);
+
+        int userId = reqDto.getId();    // 세션에서 가져온 유저 id
+
+        if (reqDtoBoard.isEmpty()) {
+            // 댓글이 없을 경우 404 Not Found 응답을 보냄
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<CommentDTO> result = commentService.getComment(dto.getBoardSeq());
+        for (BoardCommentDTO boardComment : reqDtoBoard) {    // 검사
+            int userIdByBoardComment = boardComment.getUserId(); // 댓글을 등록한 유저의 id를 가져옴.
 
-        return new ResponseEntity<>(result, HttpStatus.OK);
+            log.info("로그인 중인 유저 Id : {}", userId);
+            log.info("댓글 등록한 유저 Id : {}", userIdByBoardComment);
+
+            if (userId == userIdByBoardComment) {
+                boardComment.setOnself(true);
+            } else {
+                boardComment.setOnself(false);
+            }
+        }
+        // 댓글 리스트를 반환
+        return new ResponseEntity<>(reqDtoBoard, HttpStatus.OK);
     }
 
     /* 댓글 작성 */
     @PostMapping("/{id}/comment/new")
-    public ResponseEntity<?> commentWrite(@PathVariable int id, @RequestBody CommentDTO dto, HttpSession session) {
-        String sessionFlagYN = "N";
-        boolean result;
+    public ResponseEntity<?> commentBoardWrite(@PathVariable int id, @RequestBody BoardCommentDTO dto, HttpSession session) {
+        log.info("게시글 id : {}", id);
+        Map<String, Object> response = new HashMap<>();
 
         if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
         } else { // 세션이 있으면 여길 탈듯
-            /* 댓글 작성 서비스 호출 */
-            UserDTO reqDtoUser = (UserDTO) session.getAttribute("dto");
+            /* 상품 조회 서비스 호출 */
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            BoardDTO reqDtoBoard = boardService.getBoardById(id);
             log.info("get board : {}", boardService.getBoardById(id));
-            dto.setUserId(reqDtoUser.getId());
-            dto.setBoardSeq(reqDtoBoard.getBoardSeq());
-            int flag = commentService.writeComment(dto);
+            int userId = reqDto.getId();    // 세션에서 가져온 유저 id
+            int boardSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
-            if(flag == 0) {
-                result = true;
+            dto.setUserId(userId);
+            dto.setBoardSeq(boardSeq);
+
+            int flag = commentService.writeBoardComment(dto);
+
+            if (flag == 0) {
+                log.info("성공");
+                response.put("result", true);
             } else {
-                result = false;
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "모종의 이유로 댓글 작성에 실패했습니다.");
             }
-            /* 게시글 작성완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(result, HttpStatus.OK);
         }
-        /* 세션이 없으면 N */
-        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     /* 댓글 수정 */
     @PatchMapping("/{id}/comment/{commentId}/modify")
-    public ResponseEntity<MessageResBoard> modifyBoard(@PathVariable int id, @PathVariable int commentId, @RequestBody Map<String, Object> map,
-                                                       BoardDTO dto, HttpSession session) {
-
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
-
-        String sessionFlagYN = "N";
+    public ResponseEntity<?> modifyBoardComment(@PathVariable int id, @PathVariable int commentId, @RequestBody Map<String, Object> map,
+                                                BoardCommentDTO dto, HttpSession session) {
+        log.info("게시글 id : {}", id);
+        Map<String, Object> response = new HashMap<>();
 
         if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
         } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 수정 서비스 호출 */
-            UserDTO reqDtoUser = (UserDTO) session.getAttribute("dto");
+            /* 상품 조회 서비스 호출 */
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            BoardDTO reqDtoBoard = boardService.getBoardById(id);
             log.info("get board : {}", boardService.getBoardById(id));
-            dto.setUserId(reqDtoUser.getId());
-            dto.setBoardSeq(reqDtoBoard.getBoardSeq());
+            int userId = reqDto.getId();    // 세션에서 가져온 유저 id
+            int boardSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
+
+            dto.setUserId(userId);
+            dto.setBoardSeq(boardSeq);
 
             map.put("id", id);
             map.put("commentId", commentId);
-            int flag = commentService.modifyComment(map);
+            int flag = commentService.modifyBoardComment(map);
 
-            if(flag == 0) {
-                messageResBoard.setResult(true);
+            if (flag == 0) {
+                log.info("성공");
+                response.put("result", true);
             } else {
-                messageResBoard.setResult(false);
-                messageResBoard.setMessage("댓글 수정에 실패했습니다.");
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "모종의 이유로 댓글 수정에 실패했습니다.");
             }
-            /* 게시글 작성완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}/comment/{commentId}/delete")
-    public ResponseEntity<MessageResBoard> deleteComment(@PathVariable int id, @PathVariable int commentId,
-                                                       CommentDTO dto, HttpSession session) {
-
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
-
-        String sessionFlagYN = "N";
+    public ResponseEntity<?> deleteBoardComment(@PathVariable int id, @PathVariable int commentId,
+                                                BoardCommentDTO dto, HttpSession session) {
+        log.info("게시글 id : {}", id);
+        log.info("댓글 id : {}", commentId);
+        Map<String, Object> response = new HashMap<>();
 
         if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
         } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 삭제 서비스 호출 */
-            UserDTO reqDtoUser = (UserDTO) session.getAttribute("dto");
+            /* 상품 조회 서비스 호출 */
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            BoardDTO reqDtoBoard = boardService.getBoardById(id);
             log.info("get board : {}", boardService.getBoardById(id));
-            dto.setUserId(reqDtoUser.getId());
-            dto.setBoardSeq(reqDtoBoard.getBoardSeq());
+            int userId = reqDto.getId();    // 세션에서 가져온 유저 id
+            int boardSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
-            int flag = commentService.deleteComment(id, commentId);
+            dto.setUserId(userId);
+            dto.setBoardSeq(boardSeq);
 
-            if(flag == 0) {
-                messageResBoard.setResult(true);
+            int flag = commentService.deleteBoardComment(id, commentId);
+
+            if (flag == 0) {
+                log.info("성공");
+                response.put("result", true);
             } else {
-                messageResBoard.setResult(false);
-                messageResBoard.setMessage("댓글 삭제에 실패했습니다.");
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "모종의 이유로 댓글 삭제에 실패했습니다.");
             }
-            /* 게시글 삭제 완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
+
 }

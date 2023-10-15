@@ -11,8 +11,7 @@
             PRODUCT_DATE,
             PRODUCT_PRICE,
             PRODUCT_LINK,
-            USER_ID,
-            ONLIKE
+            USER_ID
         )
         VALUES
             (
@@ -23,10 +22,64 @@
             #{strProductDate},
             #{strProductPrice},
             #{strProductLink},
-            #{userId},
+            #{userId}
             0
             )
     </insert>
+
+    <select id="getProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            PRODUCT
+    </select>
+
+    <select id="getTransactionCount" parameterType="com.server.model.ProductDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+        AND PRODUCT_STATUS = '거래'
+    </select>
+
+    <select id="getRentalCount" parameterType="com.server.model.ProductDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+        AND PRODUCT_STATUS = '대여'
+    </select>
+
+    <select id="getProduct" parameterType="int" resultType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="getProductBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
+        <![CDATA[
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE PRODUCT_TITLE LIKE UPPER(#{search})
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+        ]]>
+    </select>
 
     <select id="getProductById" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
@@ -38,7 +91,8 @@
             PRODUCT_PRICE AS strProductPrice,
             PRODUCT_LINK AS strProductLink,
             USER_ID AS userId,
-            ONLIKE AS onLike
+            ONLIKE AS onlike,
+            ONSELF AS onself
         FROM
             PRODUCT
         WHERE 1 = 1
@@ -63,20 +117,108 @@
             PRODUCT_CONTENT = #{strProductContent},
             PRODUCT_DATE = #{strProductDate},
             PRODUCT_PRICE = #{strProductPrice},
-            PRODUCT_LINK = #{strProductLink},
-            ONLIKE = #{onLike}
+            PRODUCT_LINK = #{strProductLink}
         WHERE 1 = 1
           AND PRODUCT_SEQ = #{id}
         ]]>
     </update>
 
-    <update id="updateProductLike" parameterType="Map">
-    <![CDATA[
-        UPDATE PRODUCT
-        SET
-            ONLIKE = #{onLike}
-        WHERE 1 = 1
-          AND PRODUCT_SEQ = #{id}
+    <insert id="insertLikeStatus" parameterType="com.server.model.LikeDTO">
+        INSERT INTO LIKESTATUS (USER_ID, PRODUCT_SEQ, ONLIKE)
+        VALUES (#{userId}, #{productSeq}, #{onlike})
+    </insert>
+
+    <!-- 사용자가 상품을 찜한 상태 업데이트 -->
+    <update id="updateLikeStatus" parameterType="Map">
+        <![CDATA[
+        UPDATE LIKESTATUS
+        SET ONLIKE = #{onlike}
+        WHERE USER_ID = #{userId} AND PRODUCT_SEQ = #{productSeq}
         ]]>
-</update>
+    </update>
+
+    <select id="isAlreadyLiked" resultType="boolean" parameterType="Map">
+        SELECT COUNT(*) > 0
+        FROM LIKESTATUS
+        WHERE USER_ID = #{userId}
+          AND PRODUCT_SEQ = #{productSeq}
+    </select>
+
+    <select id="getLikedByUser" resultType="boolean" parameterType="Map">
+        SELECT ONLIKE
+        FROM LIKESTATUS
+        WHERE USER_ID = #{userId}
+          AND PRODUCT_SEQ = #{productSeq}
+    </select>
+
+    <select id="getTransaction" parameterType="int" resultType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+        AND PRODUCT_STATUS = '거래'
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="getTransactionBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
+        <![CDATA[
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+        AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '거래'
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+        ]]>
+    </select>
+
+    <select id="getRental" parameterType="int" resultType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND PRODUCT_STATUS = '대여'
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="getRentalBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
+        <![CDATA[
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '대여'
+        ORDER BY PRODUCT_SEQ ASC
+            LIMIT #{offset}, #{pageSize}
+        ]]>
+    </select>
+
+    <delete id="deleteProduct" parameterType="int">
+        <![CDATA[
+        DELETE FROM PRODUCT
+        WHERE PRODUCT_SEQ = #{id}
+        ]]>
+    </delete>
 </mapper>

@@ -1,6 +1,7 @@
 package com.server.service;
 
 import com.server.mapper.UserMapper;
+import com.server.model.ProductDTO;
 import com.server.model.UserDTO;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -12,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -101,5 +103,13 @@ public class UserService {
         UserDTO rspDto = userMapper.selectOneUser(dto);
 
         return rspDto;
+    }
+
+    public int getMyProductCount(int id) {
+        return userMapper.getMyProductCount(id);
+    }
+
+    public List<ProductDTO> getMyProduct(int id) {
+        return userMapper.getMyProduct(id);
     }
 }

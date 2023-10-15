@@ -1,8 +1,8 @@
 package com.server.service;
 
 import com.server.mapper.CommentMapper;
-import com.server.model.BoardDTO;
-import com.server.model.CommentDTO;
+import com.server.model.BoardCommentDTO;
+import com.server.model.ProductCommentDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,15 +17,16 @@ public class CommentService {
 
     private final CommentMapper commentMapper;
 
-    public List<CommentDTO> getComment(int boardSeq) {
-        return commentMapper.getComment(boardSeq);
+    /*------------------------------------- 게시판 댓글 ------------------------------------------------ */
+    public List<BoardCommentDTO> getBoardComment(int boardSeq) {
+        return commentMapper.getBoardComment(boardSeq);
     }
 
-    public int writeComment(CommentDTO dto) {
+    public int writeBoardComment(BoardCommentDTO dto) {
         log.info("dto : {}", dto);
 
         int flag = 1;
-        int result = commentMapper.writeComment(dto);
+        int result = commentMapper.writeBoardComment(dto);
 
         if(result >= 1) {
             flag = 0;
@@ -35,10 +36,10 @@ public class CommentService {
         return flag;
     }
 
-    public int modifyComment(Map<String, Object> map) {
+    public int modifyBoardComment(Map<String, Object> map) {
 
         int flag = 1;
-        int result = commentMapper.modifyComment(map);
+        int result = commentMapper.modifyBoardComment(map);
 
         if(result >= 1) {
             flag = 0;
@@ -48,9 +49,9 @@ public class CommentService {
         return flag;
     }
 
-    public int deleteComment(int id, int commentId) {
+    public int deleteBoardComment(int id, int commentId) {
         int flag = 1;
-        int result = commentMapper.deleteComment(id, commentId);
+        int result = commentMapper.deleteBoardComment(id, commentId);
 
         if(result >= 1) {
             flag = 0;
@@ -58,5 +59,53 @@ public class CommentService {
             flag = 1;
         }
         return flag;
+    }
+
+    /*------------------------------------- 상품 댓글 ------------------------------------------------ */
+    public List<ProductCommentDTO> getProductComment(int productSeq) {
+        return commentMapper.getProductComment(productSeq);
+    }
+
+    public int writeProductComment(ProductCommentDTO dto) {
+        log.info("dto : {}", dto);
+
+        int flag = 1;
+        int result = commentMapper.writeProductComment(dto);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
+    }
+
+    public int modifyProductComment(Map<String, Object> map) {
+
+        int flag = 1;
+        int result = commentMapper.modifyProductComment(map);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
+    }
+
+    public int deleteProductComment(int id, int commentId) {
+        int flag = 1;
+        int result = commentMapper.deleteProductComment(id, commentId);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
+    }
+
+    public int getUserIdByCommentSeq(int id) {
+        return commentMapper.getUserIdByCommentSeq(id);
     }
 }

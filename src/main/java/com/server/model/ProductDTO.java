@@ -2,7 +2,9 @@ package com.server.model;
 
 import lombok.Data;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ProductDTO {
@@ -14,5 +16,7 @@ public class ProductDTO {
     private String strProductPrice;
     private String strProductLink;
     private int userId;
-    private int onLike;
+    private boolean onlike;
+    private boolean onself;
+    private Set<UserDTO> usersWhoLiked = new HashSet<>();
 }

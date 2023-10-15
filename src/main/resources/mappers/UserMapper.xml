@@ -10,7 +10,7 @@
             USER_PHONE AS strPhoneNumber
         FROM USER
         WHERE 1 = 1
-         AND USER_EMAIL = #{strEmail}
+          AND USER_EMAIL = #{strEmail}
     </select>
 
     <select id="selectEncPwd" parameterType="com.server.model.UserDTO" resultType="String">
@@ -57,4 +57,44 @@
         WHERE 1 = 1
           AND USER_NAME = #{strName}
     </select>
+
+    <select id="getMyProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">
+        SELECT
+            COUNT(*)
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </select>
+
+    <select id="getMyProduct" parameterType="int" resultType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS productSeq,
+            PRODUCT_TITLE AS strProductTitle,
+            PRODUCT_STATUS AS strProductStatus,
+            PRODUCT_LINK AS strProductLink,
+            PRODUCT_PRICE AS strProductPrice
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+        ORDER BY PRODUCT_SEQ ASC
+    </select>
+
+
+
+    <select id="getLikeListByUserId" parameterType="Int" resultType="com.server.model.LikeDTO">
+        SELECT
+            *
+        FROM
+            ONLIKE
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </select>
+
+    <delete id="deleteLike" parameterType="Int">
+        DELETE FROM ONLIKE
+        WHERE 1 = 1
+          AND USER_ID = #{userId} AND PRODUCT_SEQ = #{productSeq}
+    </delete>
 </mapper>

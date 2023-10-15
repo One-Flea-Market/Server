@@ -43,6 +43,9 @@ public class BoardService {
         return boardMapper.getBoard(offset, pageSize);
     }
 
+    public int getUserIdByBoardSeq(int id) {
+        return boardMapper.getUserIdByBoardSeq(id);
+    }
     /* 게시글 조회 by 게시글 고유 id */
     public BoardDTO getBoardById(int id) {
         return boardMapper.getBoardById(id);

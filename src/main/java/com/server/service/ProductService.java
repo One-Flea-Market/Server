@@ -1,11 +1,15 @@
 package com.server.service;
 
 import com.server.mapper.ProductMapper;
+import com.server.model.LikeDTO;
 import com.server.model.ProductDTO;
+import com.server.model.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,14 +34,60 @@ public class ProductService {
         return flag;
     }
 
+    public List<ProductDTO> getProduct(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+        return productMapper.getProduct(offset, pageSize);
+    }
+
+    public List<ProductDTO> getTransaction(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+        return productMapper.getTransaction(offset, pageSize);
+    }
+
+    public List<ProductDTO> getRental(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        log.info("offset : {}", offset);
+        return productMapper.getRental(offset, pageSize);
+    }
+
+    public int getProductCount() { return productMapper.getProductCount();}
+
+    public int getTransactionCount() { return productMapper.getTransactionCount();}
+
+    public int getRentalCount() { return productMapper.getRentalCount();}
+
     public int getUserIdByProductSeq(int id) {
         return productMapper.getUserIdByProductSeq(id);
     }
 
-    public List<ProductDTO> getProductById(int id) {
-        return productMapper.getProductById(id);
+    // 상품 상세
+    public List<ProductDTO> getProductById(int id, UserDTO reqDto) {
+        List<ProductDTO> productList = productMapper.getProductById(id);
+        int userId = reqDto.getId(); // 세션 내의 유저 id
+        for (ProductDTO product : productList) {    // 검사
+            int userIdByProduct = product.getUserId(); // 상품을 등록한 유저의 id를 가져옴.
+            if (userIdByProduct == reqDto.getId()) {    // 세션 내의 유저 id와 상품 내의 유저 id가 같다면 여기로 들어갈 것.
+                product.setOnself(true);    // 세션 내의 유저가 게시한 상품을 나타냄.
+                product.setOnlike(false);   // 자신이 게시한 상품이기에 찜할 수 없음.
+            } else {
+                product.setOnself(false);
+                boolean alreadyLiked = alreadyLiked(userId, product.getProductSeq());   // 레코드가 있는지 검사.
+                log.info("product.getProductSeq() = {}", product.getProductSeq());
+                log.info("userId = {}", userId);
+                log.info("alreadyLiked = {}", alreadyLiked);
+                if(alreadyLiked) {
+                    product.setOnlike(productMapper.getLikedByUser(userId, product.getProductSeq()));
+                } else {
+                    product.setOnlike(false);
+                }
+            }
+        }
+        return productList;
     }
 
+    /* 상품 수정 */
     public int modifyProduct(Map<String, Object> map) {
 
         int flag = 1;
@@ -51,10 +101,58 @@ public class ProductService {
         return flag;
     }
 
-    public int updateProductLike(Map<String, Object> map) {
+    /* 찜하기 테이블 안에 유저 고유 id와 상품 고유 id가 들어있는 레코드가 있는지 검사 */
+    public boolean alreadyLiked(int userId, int productSeq) {
+        return productMapper.isAlreadyLiked(userId, productSeq);
+    }
+
+    /* 찜하기 기능 */
+    @Transactional
+    public int updateLikeStatus(int userId, int productSeq, boolean onlike) {
+        boolean alreadyLiked = alreadyLiked(userId, productSeq);
 
         int flag = 1;
-        int result = productMapper.updateProductLike(map);
+
+        if(alreadyLiked) {  // 레코드가 있는지 검사 후에 있다면 이쪽으로 들어갈 것.
+            Map<String, Object> params = new HashMap<>();
+            params.put("userId", userId);
+            params.put("productSeq", productSeq);
+            params.put("onlike", onlike);
+
+            log.info("{} / {} / {}", userId, productSeq, onlike);
+            log.info("{}", params);
+
+            int result = productMapper.updateLikeStatus(params);
+
+            log.info("result : {}", result);
+
+            if(result >= 1) {
+                flag = 0;
+            } else {
+                flag = 1;
+            }
+            return flag;
+        } else {    // 레코드가 있는지 검사 후에 없다면 객체를 생성해 새로운 찜 정보 insert.
+            LikeDTO newLikeDTO = new LikeDTO();
+            newLikeDTO.setUserId(userId);
+            newLikeDTO.setProductSeq(productSeq);
+            newLikeDTO.setOnlike(onlike);
+
+            int result = productMapper.insertLikeStatus(newLikeDTO);
+
+            if(result >= 1) {
+                flag = 0;
+            } else {
+                flag = 1;
+            }
+            return flag;
+        }
+    }
+
+    /* 상품 삭제 */
+    public int deleteProduct(int id) {
+        int flag = 1;
+        int result = productMapper.deleteProduct(id);
 
         if(result >= 1) {
             flag = 0;

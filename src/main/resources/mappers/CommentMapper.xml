@@ -1,87 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.server.mapper.CommentMapper">
-    <insert id="writeComment" parameterType="com.server.model.CommentDTO">
-        INSERT INTO COMMENT
+    <insert id="writeBoardComment" parameterType="com.server.model.BoardCommentDTO">
+        INSERT INTO BOARD_COMMENT
             (
              COMMENT_SEQ,
              COMMENT_BODY,
              COMMENT_DATE,
              USER_ID,
-             BOARD_SEQ
+             BOARD_SEQ,
+             ONSELF
              )
         VALUES
             (
              0,
-             #{commentBody},
-             #{commentDate},
+             #{boardCommentBody},
+             #{boardCommentDate},
              #{userId},
-             #{boardSeq}
+             #{boardSeq},
+             #{onself}
              )
     </insert>
 
-    <select id="getBoardCount" parameterType="com.server.model.CommentDTO" resultType="Int">
+    <select id="getBoardComment" resultType="com.server.model.BoardCommentDTO">
         SELECT
-            COUNT(*)
-        FROM
-            FREE_BOARD
-    </select>
-
-    <select id="getBoardById" parameterType="int" resultType="com.server.model.CommentDTO">
-        SELECT
-            BOARD_SEQ AS boardSeq,
-            BOARD_TITLE AS strTitle,
-            BOARD_DATE AS strDate,
-            BOARD_CONTENT AS strContent,
-            USER_ID AS userId
-        FROM
-            FREE_BOARD
-        WHERE 1 = 1
-          AND BOARD_SEQ = #{id}
-    </select>
-
-    <select id="getComment" resultType="com.server.model.CommentDTO">
-        SELECT
-            COMMENT_SEQ AS commentSeq,
-            COMMENT_BODY AS commentBody,
-            COMMENT_DATE AS commentDate,
+            COMMENT_SEQ AS boardCommentSeq,
+            COMMENT_BODY AS boardCommentBody,
+            COMMENT_DATE AS boardCommentDate,
             USER_ID AS userId,
-            BOARD_SEQ AS boardSeq
+            BOARD_SEQ AS boardSeq,
+            ONSELF AS onself
         FROM
-            COMMENT
+            BOARD_COMMENT
         WHERE BOARD_SEQ = #{boardSeq}
     </select>
-
-    <select id="getBoardBySearch" parameterType="Map" resultType="com.server.model.CommentDTO">
-        <![CDATA[
-        SELECT
-            BOARD_SEQ AS boardSeq,
-            BOARD_TITLE AS strTitle,
-            BOARD_DATE AS strDate,
-            USER_ID AS userId
-        FROM
-            FREE_BOARD
-        WHERE BOARD_TITLE LIKE UPPER(#{search})
-        ORDER BY BOARD_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
-        ]]>
-    </select>
     
-    <update id="modifyComment" parameterType="Map">
+    <update id="modifyBoardComment" parameterType="Map">
         <![CDATA[
-        UPDATE COMMENT
+        UPDATE BOARD_COMMENT
         SET
-            COMMENT_BODY = #{commentBody},
-            COMMENT_DATE = #{commentDate}
+            COMMENT_BODY = #{boardCommentBody},
+            COMMENT_DATE = #{boardCommentDate}
         WHERE
             BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
         ]]>
     </update>
 
-    <delete id="deleteComment" parameterType="int">
+    <delete id="deleteBoardComment" parameterType="int">
         <![CDATA[
-        DELETE FROM COMMENT
+        DELETE FROM BOARD_COMMENT
         WHERE BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
         ]]>
     </delete>
+<!-- 상품 -->
+    <insert id="writeProductComment" parameterType="com.server.model.ProductCommentDTO">
+        INSERT INTO PRODUCT_COMMENT
+        (
+            COMMENT_SEQ,
+            COMMENT_BODY,
+            COMMENT_DATE,
+            USER_ID,
+            PRODUCT_SEQ,
+            ONSELF
+        )
+        VALUES
+            (
+                0,
+                #{productCommentBody},
+                #{productCommentDate},
+                #{userId},
+                #{productSeq},
+                #{onself}
+            )
+    </insert>
+
+    <select id="getProductComment" resultType="com.server.model.ProductCommentDTO">
+        SELECT
+            COMMENT_SEQ AS productCommentSeq,
+            COMMENT_BODY AS productCommentBody,
+            COMMENT_DATE AS productCommentDate,
+            USER_ID AS userId,
+            PRODUCT_SEQ AS productSeq,
+            ONSELF AS onself
+        FROM
+            PRODUCT_COMMENT
+        WHERE PRODUCT_SEQ = #{productSeq}
+    </select>
+
+    <update id="modifyProductComment" parameterType="Map">
+        <![CDATA[
+        UPDATE PRODUCT_COMMENT
+        SET
+            COMMENT_BODY = #{productCommentBody},
+            COMMENT_DATE = #{productCommentDate}
+        WHERE
+            PRODUCT_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
+        ]]>
+    </update>
+
+    <delete id="deleteProductComment" parameterType="int">
+        <![CDATA[
+        DELETE FROM PRODUCT_COMMENT
+        WHERE PRODUCT_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
+        ]]>
+    </delete>
+    
+    <select id="getUserIdByCommentSeq" parameterType="int" resultType="int">
+        SELECT
+            USER_ID AS userId
+        FROM
+            PRODUCT_COMMENT
+        WHERE 1 = 1
+          AND COMMNET_SEQ = #{commentSeq}
+    </select>
 </mapper>

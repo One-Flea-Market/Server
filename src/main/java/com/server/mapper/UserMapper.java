@@ -1,7 +1,10 @@
 package com.server.mapper;
 
+import com.server.model.ProductDTO;
 import com.server.model.UserDTO;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 @Mapper
 public interface UserMapper {
@@ -20,6 +23,8 @@ public interface UserMapper {
     /* 닉네임 중복 체크 */
     String nameCheck(String name);
 
+    int getMyProductCount(int id);
 
+    List<ProductDTO> getMyProduct(int id);
 
 }

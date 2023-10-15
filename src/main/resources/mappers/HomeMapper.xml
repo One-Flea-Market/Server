@@ -59,4 +59,25 @@
         ORDER BY NOTICE_DATE DESC
         LIMIT 3
     </select>
+
+    <insert id="postInquiry" parameterType="com.server.model.InquiryDTO">
+        INSERT INTO INQUIRY
+            (
+             INQUIRY_SEQ,
+             INQUIRY_TITLE,
+             INQUIRY_BODY,
+             INQUIRY_DATE,
+             INQUIRY_EMAIL,
+             USER_ID
+            )
+        VALUES
+            (
+            0,
+            #{inquiryTitle},
+            #{inquiryBody},
+            #{inquiryDate},
+            #{inquiryEmail},
+            #{userId}
+            )
+    </insert>
 </mapper>

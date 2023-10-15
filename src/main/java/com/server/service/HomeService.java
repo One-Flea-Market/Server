@@ -1,6 +1,7 @@
 package com.server.service;
 
 import com.server.mapper.HomeMapper;
+import com.server.model.InquiryDTO;
 import com.server.model.NoticeDTO;
 import com.server.repository.NoticeDAO;
 import lombok.RequiredArgsConstructor;
@@ -53,4 +54,18 @@ public class HomeService {
         return homeMapper.getHomeNotice();
     }
 
+    public int postInquiry(InquiryDTO dto) {
+
+        log.info("dto : {}", dto);
+
+        int flag = 1;
+        int result = homeMapper.postInquiry(dto);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
+    }
 }

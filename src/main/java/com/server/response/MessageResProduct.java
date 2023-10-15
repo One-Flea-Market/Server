@@ -13,12 +13,14 @@ public class MessageResProduct {
     private String message;
     private boolean onself;
     private boolean onlike;
+    private boolean next;
     private List<ProductDTO> productList;
     public MessageResProduct() {
         this.result = false;
         this.message = null;
         this.onself = false;
         this.onlike = false;
+        this.next = false;
         this.productList = new ArrayList<>();
     }
 }

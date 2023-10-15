@@ -2,6 +2,8 @@ package com.server.controller;
 
 import com.server.response.MessageRes;
 import com.server.model.UserDTO;
+import com.server.response.MessageResProduct;
+import com.server.service.ProductService;
 import com.server.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,8 +25,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
     private final UserService userService;
+    private final ProductService productService;
 
     /* 로그인 */
     @PostMapping("/login")
@@ -124,27 +126,90 @@ public class UserController {
     }
 
     @GetMapping("/admin")
-    public ResponseEntity<?> mypageView(@RequestParam String email, HttpSession session) {
+    public ResponseEntity<?> mypageView(UserDTO dto, HttpSession session) {
 
-        log.info("읽어온 email  {}", email);
-        if (email == null) {
+        String sessionFlagYN = "N";
+
+        if(session.getAttribute("dto") == null) {
             log.info("mypage 호출 실패!!");
             return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
+        } else {
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+            log.info("session user : {}", session.getAttribute("dto"));
+            dto.setStrEmail(reqDto.getStrEmail());
 
+            log.info("읽어온 email  {}", dto);
+            log.info("읽어온 reqDto  {}", reqDto);
+
+            if (reqDto != null && Objects.equals(reqDto.getStrEmail(), dto.getStrEmail())) {
+                log.info("mypage 호출 성공!!");
+                UserDTO userDTO = userService.mypage(reqDto);
+                return new ResponseEntity<>(userDTO, HttpStatus.OK);
+
+            } else {
+                log.info("mypage 호출 실패!!");
+                return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
+            }
         }
+    }
 
-        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+    @GetMapping("/admin/product")
+    public ResponseEntity<MessageResProduct> myProductView(UserDTO dto, HttpSession session) {
+        MessageResProduct messageResProduct = new MessageResProduct();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
 
-        log.info("읽어온 reqDto  {}", reqDto);
-
-        if (reqDto != null && Objects.equals(reqDto.getStrEmail(), email)) {
-            log.info("mypage 호출 성공!!");
-            UserDTO userDTO = userService.mypage(reqDto);
-            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        if(session.getAttribute("dto") == null) {
+            log.info("dto : null");
+            messageResProduct.setMessage("로그인 상태가 아닙니다.");
 
         } else {
-            log.info("mypage 호출 실패!!");
-            return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+            log.info("session user : {}", session.getAttribute("dto"));
+            dto.setId(reqDto.getId());
+
+            int id = reqDto.getId();
+            int count = userService.getMyProductCount(id);
+            log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+
+            if(count == 0) {
+                messageResProduct.setMessage("등록한 상품이 없습니다.");
+                messageResProduct.setResult(false);
+            } else {
+                messageResProduct.setProductList(userService.getMyProduct(id));
             }
+        }
+
+        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/cart")
+    public ResponseEntity<MessageResProduct> userLikeProduct(UserDTO dto, HttpSession session) {
+        MessageResProduct messageResProduct = new MessageResProduct();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+
+        if(session.getAttribute("dto") == null) {
+            log.info("dto : null");
+            messageResProduct.setMessage("로그인 상태가 아닙니다.");
+
+        } else {
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+            log.info("session user : {}", session.getAttribute("dto"));
+            dto.setId(reqDto.getId());
+
+            int id = reqDto.getId();
+            int count = userService.getMyProductCount(id);
+            log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+
+            if(count == 0) {
+                messageResProduct.setMessage("등록한 상품이 없습니다.");
+                messageResProduct.setResult(false);
+            } else {
+                messageResProduct.setProductList(userService.getMyProduct(id));
+            }
+        }
+
+        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
     }
 }

@@ -40,6 +40,15 @@
           AND BOARD_SEQ = #{id}
     </select>
 
+    <select id="getUserIdByBoardSeq" parameterType="int" resultType="int">
+        SELECT
+            USER_ID AS userId
+        FROM
+            FREE_BOARD
+        WHERE 1 = 1
+          AND BOARD_SEQ = #{boardSeq}
+    </select>
+
     <select id="getBoard" parameterType="int" resultType="com.server.model.BoardDTO">
         SELECT
             BOARD_SEQ AS boardSeq,
