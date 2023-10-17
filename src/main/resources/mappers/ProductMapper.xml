@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.server.mapper.ProductMapper">
     <insert id="insertProduct" parameterType="com.server.model.ProductDTO">
+        <![CDATA[
         INSERT INTO PRODUCT
         (
             PRODUCT_SEQ,
@@ -11,20 +12,24 @@
             PRODUCT_DATE,
             PRODUCT_PRICE,
             PRODUCT_LINK,
-            USER_ID
+            USER_ID,
+            ONLIKE,
+            ONSELF
         )
         VALUES
             (
-            0,
-            #{strProductTitle},
-            #{strProductStatus},
-            #{strProductContent},
-            #{strProductDate},
-            #{strProductPrice},
-            #{strProductLink},
-            #{userId}
-            0
+                0,
+                #{strProductTitle},
+                #{strProductStatus},
+                #{strProductContent},
+                #{strProductDate},
+                #{strProductPrice},
+                #{strProductLink},
+                #{userId},
+                false,
+                false
             )
+        ]]>
     </insert>
 
     <select id="getProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">
@@ -62,7 +67,7 @@
         FROM
             PRODUCT
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
     </select>
 
     <select id="getProductBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">

@@ -4,6 +4,7 @@ import com.server.mapper.ProductMapper;
 import com.server.model.*;
 import com.server.response.MessageResBoard;
 import com.server.response.MessageResProduct;
+import com.server.service.AmazonS3Service;
 import com.server.service.CommentService;
 import com.server.service.ProductService;
 import jakarta.servlet.http.HttpSession;
@@ -16,11 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -30,122 +30,172 @@ public class ProductController {
     private final ProductService productService;
     private final CommentService commentService;
     private final SqlSession sqlSession;
+    private final AmazonS3Service amazonS3Service;
     private final ProductMapper productMapper;
 
     /* 상품 메인 */
     @GetMapping("")
-    public ResponseEntity<MessageResProduct> productView() {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> productView() {
 
         int page = 1;
         int pageSize = 12;
-        int flag = 0;
         int count = productService.getProductCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
-        while((page - 1) * pageSize <= count) {
-            log.info("while 문 안의 page : {}", page);
-            messageResProduct.setProductList(productService.getProduct(page, pageSize));
-            log.info("BoardList : {}", messageResProduct.getProductList());
-            if (count >= (page - 1) * pageSize) {
-                messageResProduct.setNext(true);
-                flag = page * pageSize;
-                page++;
-                log.info(" flag : {}", flag);
-                if (count <= flag) {
-                    messageResProduct.setNext(false);
-                }
-            } else {
-                messageResProduct.setNext(false);
-            }
-            log.info("컬럼이 더 있는가? : {}", messageResProduct.isNext());
-        }
-        log.info("while 문 밖의 page : {}", page);
+        // 서비스에서 상품 목록을 가져옴
+        List<ProductDTO> productList = productService.getProduct(page);
 
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+        // 응답 데이터 구성을 위한 리스트
+        List<Map<String, Object>> responseList = new ArrayList<>();
+
+        // 현재 페이지에서 보내줄 상품 개수
+        int itemCount = 0;
+
+        for (ProductDTO listDto : productList) {
+            Map<String, Object> productMap = new LinkedHashMap<>();
+            productMap.put("productSeq", listDto.getProductSeq());
+            productMap.put("strProductTitle", listDto.getStrProductTitle());
+            productMap.put("strProductStatus", listDto.getStrProductStatus());
+            productMap.put("strProductPrice", listDto.getStrProductPrice());
+
+            String linkAsString = listDto.getStrProductLink();
+            List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+            productMap.put("strProductLink", imageLinks);
+
+            // 응답 데이터에 상품 정보 추가
+            responseList.add(productMap);
+
+            // 현재 페이지에서 보내준 상품 개수 증가
+            itemCount++;
+
+            // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
+            if (itemCount >= pageSize) {
+                page++;
+                log.info("{}", page);
+                break;
+            }
+        }
+        log.info("productList : {}", productList);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("list", responseList);
+        response.put("next", itemCount >= pageSize);
+
+        log.info("while 문 밖의 page : {}", page);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /* 상품 등록 */
+    @Transactional
     @PostMapping("/registration")
-    public ResponseEntity<?> registerProduct(@RequestBody ProductDTO dto, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> registerProduct(ProductRequestDTO requestDTO,
+                                                               HttpSession session) {
 
-        String sessionFlagYN = "N";
-        boolean result;
+        Map<String, Object> response = new HashMap<>();
 
         if (session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
         } else { // 세션이 있으면 여길 탈듯
             /* 상품 등록 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
+
+            ProductDTO dto = new ProductDTO();
+            dto.setStrProductTitle(requestDTO.getStrProductTitle());
+            dto.setStrProductStatus(requestDTO.getStrProductStatus());
+            dto.setStrProductContent(requestDTO.getStrProductContent());
+            dto.setStrProductDate(requestDTO.getStrProductDate());
+            dto.setStrProductPrice(requestDTO.getStrProductPrice());
             dto.setUserId(reqDto.getId());
+
+            List<MultipartFile> images = requestDTO.getImageFiles();
+
+            log.info("imageLinks.size : {}", images.size());
+            // 최대 12개까지만 이미지를 저장하도록 제한
+            int maxImages = 12;
+            if (images.size() > maxImages) {
+                response.put("result", false);
+                response.put("message", "이미지는 최대 12개 까지 첨부할 수 있습니다.");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
+            List<String> imageLinks = amazonS3Service.uploadFiles(requestDTO.getImageFiles());  // 이미지 링크
+
+            String linksAsString = String.join(",", imageLinks); // 이미지 링크를 문자열로 변환
+            dto.setStrProductLink(linksAsString); // 문자열로 변환한 이미지 링크를 DTO에 설정
+
+            log.info("imageLinks : {}", imageLinks);
             int flag = productService.insertProduct(dto);
 
             if (flag == 0) {
-                result = true;
+                response.put("result", true);
             } else {
-                result = false;
+                response.put("result", false);
+                response.put("message", "실패");
             }
-            /* 상품 등록 완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(result, HttpStatus.OK);
+
         }
-        /* 세션이 없으면 N */
-        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     /* 상품 상세 */
     @GetMapping("/{id}")
-    public ResponseEntity<MessageResProduct> getProductById(@PathVariable int id, ProductDTO dto, HttpSession session) {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> getProductById(@PathVariable int id, ProductDTO dto, HttpSession session) {
 
         log.info("{}", id);
-        String sessionFlagYN = "N";
+        Map<String, Object> response = new HashMap<>();
 
-        if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
-        } else { // 세션이 있으면 여길 탈듯
-            /* 상품 조회 서비스 호출 */
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setUserId(reqDto.getId());
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
+        }
+        /* 상품 조회 서비스 호출 */
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+        log.info("session user : {}", session.getAttribute("dto"));
+        dto.setUserId(reqDto.getId());
 
-            // 상품안의 USER_ID 검색
-            int userId = productService.getUserIdByProductSeq(id);
+        // 상품안의 USER_ID 검색
+        int userId = productService.getUserIdByProductSeq(id);
 
-            log.info("로그인 중인 유저 Id : {}", reqDto.getId());
-            log.info("상품 등록한 유저 Id : {}", userId);
+        log.info("로그인 중인 유저 Id : {}", reqDto.getId());
+        log.info("상품 등록한 유저 Id : {}", userId);
 
-            ProductDTO productDTO = new ProductDTO();
+        List<ProductDTO> productList = productService.getProductById(id, reqDto);   // 상품 리스트 호출
+        List<Map<String, Object>> responseList = new ArrayList<>();
 
-            messageResProduct.setProductList(productService.getProductById(id, reqDto));
+        for (ProductDTO listDto : productList) {
+            Map<String, Object> productMap = new LinkedHashMap<>();
+            productMap.put("productSeq", listDto.getProductSeq());
+            productMap.put("strProductTitle", listDto.getStrProductTitle());
+            productMap.put("strProductStatus", listDto.getStrProductStatus());
+            productMap.put("strProductContent", listDto.getStrProductContent());
+            productMap.put("strProductDate", listDto.getStrProductDate());
+            productMap.put("strProductPrice", listDto.getStrProductPrice());
+
+            String linkAsString = listDto.getStrProductLink();
+            List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+            productMap.put("strProductLink", imageLinks);
 
             if (userId == reqDto.getId()) {
-                productDTO.setOnself(true);
-                productDTO.setOnlike(false);
-                log.info("상품 등록한 유저 Id : {}", dto);
-                messageResProduct.setMessage("본인이 등록한 상품입니다.");
+                response.put("message", "본인이 등록한 상품입니다.");
+                productMap.put("onself", true);
+                productMap.put("onlike", false);
             }
 
             if(userId != reqDto.getId()) {
-                productDTO.setOnself(false);
-                boolean alreadyLiked = productService.alreadyLiked(userId, dto.getProductSeq());
-                if(alreadyLiked) {
-                    productDTO.setOnlike(true);
-                } else {
-                    productDTO.setOnlike(false);
-                }
+                productMap.put("onself", false);
+                productMap.put("onlike", listDto.isOnlike());
             }
-            /* 게시글 작성완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+
+            responseList.add(productMap);
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+        return new ResponseEntity<>(responseList, HttpStatus.OK);
     }
+
 
     /* 상품 수정 */
     @PutMapping("/{id}/modify")

@@ -66,7 +66,7 @@ public class HomeController {
 
         while((page - 1) * pageSize <= count) {
             log.info("while 문 안의 page : {}", page);
-            messageResProduct.setProductList(productService.getProduct(page, pageSize));
+            messageResProduct.setProductList(productService.getProduct(page));
             log.info("BoardList : {}", messageResProduct.getProductList());
             if (count >= (page - 1) * pageSize) {
                 messageResProduct.setNext(true);

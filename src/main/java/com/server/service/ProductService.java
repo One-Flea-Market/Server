@@ -23,21 +23,34 @@ public class ProductService {
     public int insertProduct(ProductDTO dto) {
         log.info("dto : {}", dto);
 
-        int flag = 1;
-        int result = productMapper.insertProduct(dto);
-
-        if(result >= 1) {
-            flag = 0;
-        } else {
+        int flag = 0;
+        try {
             flag = 1;
+            int result = productMapper.insertProduct(dto);
+
+            Map<String, Object> imageMap = new HashMap<>();
+            imageMap.put("productSeq", dto.getProductSeq());
+            imageMap.put("strProductLink", dto.getStrProductLink());
+            //productMapper.insertProductImages(imageMap);
+
+            if (result >= 1) {
+                flag = 0;
+                // 이미지 링크 저장
+            } else {
+                flag = 1;
+            }
+            return flag;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return flag;
         }
-        return flag;
     }
 
-    public List<ProductDTO> getProduct(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+    public List<ProductDTO> getProduct(int page) {
+        int offset = (page - 1) * 12;
         log.info("offset : {}", offset);
-        return productMapper.getProduct(offset, pageSize);
+        return productMapper.getProduct(offset);
     }
 
     public List<ProductDTO> getTransaction(int page, int pageSize) {
@@ -78,12 +91,15 @@ public class ProductService {
                 log.info("userId = {}", userId);
                 log.info("alreadyLiked = {}", alreadyLiked);
                 if(alreadyLiked) {
+                    log.info("service alreadyLiked : {}", productMapper.getLikedByUser(userId, product.getProductSeq()));
                     product.setOnlike(productMapper.getLikedByUser(userId, product.getProductSeq()));
+                    log.info("service alreadyLiked after : {}", product.isOnlike());
                 } else {
                     product.setOnlike(false);
                 }
             }
         }
+        log.info("productList in service : {}", productList);
         return productList;
     }
 

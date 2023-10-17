@@ -4,6 +4,7 @@ import com.server.model.LikeDTO;
 import com.server.model.ProductDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,7 @@ public interface ProductMapper {
     int getProductCount();
     int getTransactionCount();
     int getRentalCount();
-    List<ProductDTO> getProduct(@Param("offset") int offset, @Param("pageSize") int pageSize);
+    List<ProductDTO> getProduct(@Param("offset") int offset);
     List<ProductDTO> getProductById(int id);
     int getUserIdByProductSeq(int id);
     int modifyProduct(Map<String, Object> map);
