@@ -52,15 +52,23 @@ public class ProductController {
         int itemCount = 0;
 
         for (ProductDTO listDto : productList) {
-            Map<String, Object> productMap = new LinkedHashMap<>();
-            productMap.put("productSeq", listDto.getProductSeq());
-            productMap.put("strProductTitle", listDto.getStrProductTitle());
-            productMap.put("strProductStatus", listDto.getStrProductStatus());
-            productMap.put("strProductPrice", listDto.getStrProductPrice());
+            Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
+            productMap.put("productSeq", listDto.getId());                  // 상품 고유 id 설정
+            productMap.put("strProductTitle", listDto.getTitle());        // 상품 이름 설정
+            productMap.put("strProductStatus", listDto.getStatus());      // 상품 카테고리 설정
+            productMap.put("strProductPrice", listDto.getPrice());        // 상품 가격 설정
 
-            String linkAsString = listDto.getStrProductLink();
+            String linkAsString = listDto.getList();
             List<String> imageLinks = Arrays.asList(linkAsString.split(","));
-            productMap.put("strProductLink", imageLinks);
+
+            Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+
+            if(!imageLinks.isEmpty()){      // 대표 이미지 설정
+                int randomIndex = random.nextInt(imageLinks.size());
+
+                String representativeImage = imageLinks.get(randomIndex);
+                productMap.put("strProductLink", representativeImage);
+            }
 
             // 응답 데이터에 상품 정보 추가
             responseList.add(productMap);
@@ -103,11 +111,11 @@ public class ProductController {
             log.info("session user : {}", session.getAttribute("dto"));
 
             ProductDTO dto = new ProductDTO();
-            dto.setStrProductTitle(requestDTO.getStrProductTitle());
-            dto.setStrProductStatus(requestDTO.getStrProductStatus());
-            dto.setStrProductContent(requestDTO.getStrProductContent());
-            dto.setStrProductDate(requestDTO.getStrProductDate());
-            dto.setStrProductPrice(requestDTO.getStrProductPrice());
+            dto.setTitle(requestDTO.getStrProductTitle());
+            dto.setStatus(requestDTO.getStrProductStatus());
+            dto.setBody(requestDTO.getStrProductContent());
+            dto.setDate(requestDTO.getStrProductDate());
+            dto.setPrice(requestDTO.getStrProductPrice());
             dto.setUserId(reqDto.getId());
 
             List<MultipartFile> images = requestDTO.getImageFiles();
@@ -124,7 +132,7 @@ public class ProductController {
             List<String> imageLinks = amazonS3Service.uploadFiles(requestDTO.getImageFiles());  // 이미지 링크
 
             String linksAsString = String.join(",", imageLinks); // 이미지 링크를 문자열로 변환
-            dto.setStrProductLink(linksAsString); // 문자열로 변환한 이미지 링크를 DTO에 설정
+            dto.setList(linksAsString); // 문자열로 변환한 이미지 링크를 DTO에 설정
 
             log.info("imageLinks : {}", imageLinks);
             int flag = productService.insertProduct(dto);
@@ -164,19 +172,19 @@ public class ProductController {
         log.info("로그인 중인 유저 Id : {}", reqDto.getId());
         log.info("상품 등록한 유저 Id : {}", userId);
 
-        List<ProductDTO> productList = productService.getProductById(id, reqDto);   // 상품 리스트 호출
+        List<ProductDTO> productList = productService.getProductByIdWithLiked(id, reqDto);   // 상품 리스트 호출
         List<Map<String, Object>> responseList = new ArrayList<>();
 
         for (ProductDTO listDto : productList) {
             Map<String, Object> productMap = new LinkedHashMap<>();
-            productMap.put("productSeq", listDto.getProductSeq());
-            productMap.put("strProductTitle", listDto.getStrProductTitle());
-            productMap.put("strProductStatus", listDto.getStrProductStatus());
-            productMap.put("strProductContent", listDto.getStrProductContent());
-            productMap.put("strProductDate", listDto.getStrProductDate());
-            productMap.put("strProductPrice", listDto.getStrProductPrice());
+            productMap.put("productSeq", listDto.getId());
+            productMap.put("strProductTitle", listDto.getTitle());
+            productMap.put("strProductStatus", listDto.getStatus());
+            productMap.put("strProductContent", listDto.getBody());
+            productMap.put("strProductDate", listDto.getDate());
+            productMap.put("strProductPrice", listDto.getPrice());
 
-            String linkAsString = listDto.getStrProductLink();
+            String linkAsString = listDto.getList();
             List<String> imageLinks = Arrays.asList(linkAsString.split(","));
             productMap.put("strProductLink", imageLinks);
 
@@ -290,39 +298,62 @@ public class ProductController {
 
     /* 상품 검색 */
     @GetMapping("/search/{search}")
-    public ResponseEntity<MessageResProduct> getProductBySearch(@PathVariable String search,
-                                                       @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "12") int pageSize) {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> getProductBySearch(@PathVariable String search) {
 
-        Map<String, Object> map = new HashMap<>();
-        int offset = (page - 1) * pageSize;
+        int page = 1;
+        int pageSize = 12;
+        int count = productService.getSearchCount(search);
+        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
-        map.put("search", "%" + search.toUpperCase() + "%");
-        map.put("offset", offset);
-        map.put("pageSize", pageSize);
+        // 서비스에서 상품 목록을 가져옴
+        List<ProductDTO> productList = productService.getProductBySearch(search, page);
 
-        List<ProductDTO> result = sqlSession.selectList("com.server.mapper.ProductMapper.getProductBySearch", map);
+        // 응답 데이터 구성을 위한 리스트
+        List<Map<String, Object>> responseList = new ArrayList<>();
 
-        if (result.isEmpty()) {
-            // 결과가 없을 때 처리
-            messageResProduct.setNext(false);
-        } else {
-            if(result.size() < pageSize) {
-                messageResProduct.setProductList(result);
-                messageResProduct.setNext(false);
-            } else{
-                // 결과가 있을 때 처리
-                messageResProduct.setProductList(result);
-                messageResProduct.setNext(true);
+        // 현재 페이지에서 보내줄 상품 개수
+        int itemCount = 0;
+
+        for (ProductDTO listDto : productList) {
+            Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
+            productMap.put("id", listDto.getId());                  // 상품 고유 id 설정
+            productMap.put("title", listDto.getTitle());        // 상품 이름 설정
+            productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
+            productMap.put("price", listDto.getPrice());        // 상품 가격 설정
+
+            String linkAsString = listDto.getList();
+            List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+
+            Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+
+            if(!imageLinks.isEmpty()){      // 대표 이미지 설정
+                int randomIndex = random.nextInt(imageLinks.size());
+
+                String representativeImage = imageLinks.get(randomIndex);
+                productMap.put("image", representativeImage);
+            }
+
+            // 응답 데이터에 상품 정보 추가
+            responseList.add(productMap);
+
+            // 현재 페이지에서 보내준 상품 개수 증가
+            itemCount++;
+
+            // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
+            if (itemCount >= pageSize) {
+                page++;
+                log.info("{}", page);
+                break;
             }
         }
+        log.info("productList : {}", productList);
 
-        log.info("컬럼이 더 있는가? : {}", messageResProduct.isNext());
-        log.info("현재 페이지: {}, 오프셋: {}, 총 검색된 결과 수: {}", page, offset, result.size());
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        response.put("list", responseList);
+        response.put("next", itemCount >= pageSize);
+
+        log.info("while 문 밖의 page : {}", page);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}/delete")
@@ -420,7 +451,7 @@ public class ProductController {
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            log.info("get board : {}", productService.getProductById(id, reqDto));
+            log.info("get board : {}", productService.getProductByIdWithLiked(id, reqDto));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
             int productSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
@@ -456,7 +487,7 @@ public class ProductController {
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            log.info("get Product : {}", productService.getProductById(id, reqDto));
+            log.info("get Product : {}", productService.getProductByIdWithLiked(id, reqDto));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
             int productSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
@@ -480,9 +511,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}/comment/{commentId}/delete")
-    public ResponseEntity<?> deleteBoardComment(@PathVariable int id, @PathVariable int commentId,
+    public ResponseEntity<?> deleteProductComment(@PathVariable int id, @PathVariable int commentId,
                                                 ProductCommentDTO dto, HttpSession session) {
-        log.info("게시글 id : {}", id);
+        log.info("상품 id : {}", id);
         log.info("댓글 id : {}", commentId);
         Map<String, Object> response = new HashMap<>();
 
@@ -494,7 +525,7 @@ public class ProductController {
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            log.info("get board : {}", productService.getProductById(id, reqDto));
+            log.info("get product : {}", productService.getProductByIdWithLiked(id, reqDto));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
             int productSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 

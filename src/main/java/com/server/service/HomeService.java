@@ -16,7 +16,6 @@ import java.util.List;
 public class HomeService {
 
     private final HomeMapper homeMapper;
-    private final NoticeDAO noticeDAO;
 
     /* 공지사항 작성 */
     public int noticeWrite(NoticeDTO dto) {
@@ -34,10 +33,10 @@ public class HomeService {
     }
 
     /* 공지사항 리스트 서비스 MyBatis */
-    public List<NoticeDTO> getNotice(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+    public List<NoticeDTO> getNotice(int page) {
+        int offset = (page - 1) * 12;
         log.info("offset : {}", offset);
-        return homeMapper.getNotice(offset, pageSize);
+        return homeMapper.getNotice(offset);
     }
 
     /* 공지사항 리스트 카운트 */

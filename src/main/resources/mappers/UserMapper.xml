@@ -5,21 +5,21 @@
     <select id="selectOneUser" parameterType="com.server.model.UserDTO" resultType="com.server.model.UserDTO">
         SELECT
             USER_ID AS id,
-            USER_NAME AS strUserName,
-            USER_EMAIL AS strEmail,
-            USER_ROLE AS strRole,
-            USER_PHONE AS strPhoneNumber
+            USER_NAME AS username,
+            USER_EMAIL AS email,
+            USER_ROLE AS role,
+            USER_PHONE AS phone_number
         FROM USER
         WHERE 1 = 1
-          AND USER_EMAIL = #{strEmail}
+          AND USER_EMAIL = #{email}
     </select>
 
     <select id="selectEncPwd" parameterType="com.server.model.UserDTO" resultType="String">
         SELECT
-            USER_PW AS strPassword
+            USER_PW AS passWord
         FROM USER
         WHERE 1 = 1
-          AND USER_EMAIL = #{strEmail}
+          AND USER_EMAIL = #{email}
     </select>
     
     <insert id="joinUser" parameterType="com.server.model.UserDTO">
@@ -35,11 +35,11 @@
         VALUES
             (
              0,
-             #{strUserName},
-             #{strEmail},
-             #{strPassword},
-             #{strRole},
-             #{strPhoneNumber}
+             #{username},
+             #{email},
+             #{passWord},
+             #{role},
+             #{phone_number}
              )
     </insert>
 
@@ -48,7 +48,7 @@
             USER_EMAIL
         FROM USER
         WHERE 1 = 1
-          AND USER_EMAIL = #{strEmail}
+          AND USER_EMAIL = #{email}
     </select>
 
     <select id="nameCheck" parameterType="com.server.model.UserDTO" resultType="String">
@@ -56,7 +56,7 @@
             USER_NAME
         FROM USER
         WHERE 1 = 1
-          AND USER_NAME = #{strName}
+          AND USER_NAME = #{username}
     </select>
 
     <select id="getMyProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">
@@ -65,37 +65,32 @@
         FROM
             PRODUCT
         WHERE 1 = 1
-          AND USER_ID = #{userId}
+          AND USER_ID = #{id}
     </select>
 
     <select id="getMyProduct" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS id,
+            PRODUCT_TITLE AS title,
+            PRODUCT_STATUS AS status,
+            PRODUCT_LINK AS list,
+            PRODUCT_PRICE AS price
         FROM
             PRODUCT
         WHERE 1 = 1
-          AND USER_ID = #{userId}
+          AND USER_ID = #{id}
         ORDER BY PRODUCT_SEQ ASC
     </select>
 
-
-
-    <select id="getLikeListByUserId" parameterType="Int" resultType="com.server.model.LikeDTO">
+    <select id="getMyLikedProducts" parameterType="Map" resultType="com.server.model.ProductDTO">
         SELECT
-            *
+            PRODUCT_SEQ AS id,
+            PRODUCT_TITLE AS title,
+            PRODUCT_STATUS AS status,
+            PRODUCT_LINK AS list,
+            PRODUCT_PRICE AS price
         FROM
-            ONLIKE
-        WHERE 1 = 1
-          AND USER_ID = #{userId}
+            PRODUCT
     </select>
 
-    <delete id="deleteLike" parameterType="Int">
-        DELETE FROM ONLIKE
-        WHERE 1 = 1
-          AND USER_ID = #{userId} AND PRODUCT_SEQ = #{productSeq}
-    </delete>
 </mapper>

@@ -10,13 +10,13 @@ import java.util.Set;
 
 @Data
 public class ProductDTO {
-    private int productSeq;
-    private String strProductTitle;
-    private String strProductStatus;
-    private String strProductContent;
-    private String strProductDate;
-    private String strProductPrice;
-    private String strProductLink;
+    private int id;
+    private String title;
+    private String status;
+    private String body;
+    private String date;
+    private String price;
+    private String list;
     private int userId;
     private boolean onlike;
     private boolean onself;

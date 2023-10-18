@@ -1,5 +1,6 @@
 package com.server.controller;
 
+import com.server.model.ProductDTO;
 import com.server.response.MessageRes;
 import com.server.model.UserDTO;
 import com.server.response.MessageResProduct;
@@ -17,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.Charset;
-import java.util.Objects;
+import java.util.*;
 
 
 @Slf4j
@@ -128,88 +129,133 @@ public class UserController {
     @GetMapping("/admin")
     public ResponseEntity<?> mypageView(UserDTO dto, HttpSession session) {
 
-        String sessionFlagYN = "N";
+        Map<String, Object> response = new HashMap<>();
 
-        if(session.getAttribute("dto") == null) {
-            log.info("mypage 호출 실패!!");
-            return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
+        if(session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
+            log.info("로그인 필요");
+            response.put("login", false);   // login : false 객체 설정
         } else {
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            dto.setStrEmail(reqDto.getStrEmail());
+            dto.setEmail(reqDto.getEmail());
 
             log.info("읽어온 email  {}", dto);
             log.info("읽어온 reqDto  {}", reqDto);
 
-            if (reqDto != null && Objects.equals(reqDto.getStrEmail(), dto.getStrEmail())) {
-                log.info("mypage 호출 성공!!");
+            if (reqDto != null && Objects.equals(reqDto.getEmail(), dto.getEmail())) {
+                log.info("mypage 호출 성공");
                 UserDTO userDTO = userService.mypage(reqDto);
                 return new ResponseEntity<>(userDTO, HttpStatus.OK);
-
-            } else {
-                log.info("mypage 호출 실패!!");
-                return new ResponseEntity<>("{\"login\":false}", HttpStatus.NOT_FOUND);
             }
         }
+        return new ResponseEntity<>(response, HttpStatus.OK);   // 비로그인 객체 반환
     }
 
     @GetMapping("/admin/product")
-    public ResponseEntity<MessageResProduct> myProductView(UserDTO dto, HttpSession session) {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> myProductView(UserDTO dto, HttpSession session) {
 
-        if(session.getAttribute("dto") == null) {
-            log.info("dto : null");
-            messageResProduct.setMessage("로그인 상태가 아닙니다.");
+        Map<String, Object> response = new HashMap<>();
 
+        if(session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
+            log.info("로그인 필요");
+            response.put("login", false);   // login : false 객체 설정
         } else {
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            dto.setId(reqDto.getId());
+            int userId = reqDto.getId();
 
-            int id = reqDto.getId();
-            int count = userService.getMyProductCount(id);
-            log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+            // 서비스에서 상품 목록을 가져옴
+            List<ProductDTO> productList = userService.getMyProduct(userId);
 
-            if(count == 0) {
-                messageResProduct.setMessage("등록한 상품이 없습니다.");
-                messageResProduct.setResult(false);
-            } else {
-                messageResProduct.setProductList(userService.getMyProduct(id));
+            // 응답 데이터 구성을 위한 리스트
+            List<Map<String, Object>> responseList = new ArrayList<>();
+
+            for (ProductDTO listDto : productList) {
+                Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
+                productMap.put("id", listDto.getId());                  // 상품 고유 id 설정
+                productMap.put("title", listDto.getTitle());        // 상품 이름 설정
+                productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
+                productMap.put("price", listDto.getPrice());        // 상품 가격 설정
+
+                String linkAsString = listDto.getList();
+                List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+
+                Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+
+                if (!imageLinks.isEmpty()) {      // 대표 이미지 설정
+                    int randomIndex = random.nextInt(imageLinks.size());
+
+                    String representativeImage = imageLinks.get(randomIndex);
+                    productMap.put("image", representativeImage);
+                }
+
+                // 응답 데이터에 상품 정보 추가
+                responseList.add(productMap);
             }
-        }
+            log.info("productList : {}", productList);
 
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+            response.put("list", responseList);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/cart")
-    public ResponseEntity<MessageResProduct> userLikeProduct(UserDTO dto, HttpSession session) {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> userLikeProduct(HttpSession session) {
 
-        if(session.getAttribute("dto") == null) {
-            log.info("dto : null");
-            messageResProduct.setMessage("로그인 상태가 아닙니다.");
+        Map<String, Object> response = new HashMap<>();
 
+        if(session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
+            log.info("로그인 필요");
+            response.put("login", false);   // login : false 객체 설정
         } else {
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            dto.setId(reqDto.getId());
+            int userId = reqDto.getId();
 
-            int id = reqDto.getId();
-            int count = userService.getMyProductCount(id);
-            log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
-
-            if(count == 0) {
-                messageResProduct.setMessage("등록한 상품이 없습니다.");
-                messageResProduct.setResult(false);
+            // 서비스에서 상품 목록을 가져옴
+            List<ProductDTO> productList = productService.getAllProduct();
+            if(productList.isEmpty()){
+                log.info("productList is empty");
             } else {
-                messageResProduct.setProductList(userService.getMyProduct(id));
+                // 결과가 있는 경우, products 리스트에 결과가 저장되어 있습니다.
+                log.info("Number of products found: {}", productList.size());
             }
-        }
+            log.info("productList 1 : {}", productList);
 
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+            // 응답 데이터 구성을 위한 리스트
+            List<Map<String, Object>> responseList = new ArrayList<>();
+
+            for (ProductDTO listDto : productList) {
+                log.info("listDto : {}", listDto);
+                Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
+                boolean onlike = userService.getMyLikedProducts(userId, listDto.getId());
+                log.info("onlike : {}", onlike);
+
+                if(onlike){
+                    productMap.put("id", listDto.getId());              // 상품 고유 id 설정
+                    productMap.put("title", listDto.getTitle());        // 상품 이름 설정
+                    productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
+                    productMap.put("price", listDto.getPrice());        // 상품 가격 설정
+
+                    String linkAsString = listDto.getList();
+                    List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+
+                    Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+
+                    if (!imageLinks.isEmpty()) {      // 대표 이미지 설정
+                        int randomIndex = random.nextInt(imageLinks.size());
+
+                        String representativeImage = imageLinks.get(randomIndex);
+                        productMap.put("image", representativeImage);
+                    }
+                    // 응답 데이터에 상품 정보 추가
+                    responseList.add(productMap);
+                }
+                log.info("productList 2 : {}", productList);
+            }
+
+            response.put("list", responseList);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

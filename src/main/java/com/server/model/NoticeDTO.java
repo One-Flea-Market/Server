@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class NoticeDTO {
 
-    private int noticeSeq;
-    private String strNoticeTitle;
-    private String strNoticeDate;
-    private String strNoticeContent;
+    private int id;
+    private String title;
+    private String date;
+    private String body;
 }

@@ -12,9 +12,9 @@
         VALUES
             (
              0,
-             #{strNoticeTitle},
-             #{strNoticeDate},
-             #{strNoticeContent}
+             #{title},
+             #{date},
+             #{body}
              )
     </insert>
 
@@ -27,10 +27,10 @@
 
     <select id="getNoticeById" parameterType="int" resultType="com.server.model.NoticeDTO">
         SELECT
-             NOTICE_SEQ AS noticeSeq,
-             NOTICE_TITLE AS strNoticeTitle,
-             NOTICE_DATE AS strNoticeDate,
-             NOTICE_CONTENT AS strNoticeContent
+             NOTICE_SEQ AS 'id',
+             NOTICE_TITLE AS 'title',
+             NOTICE_DATE AS 'date',
+             NOTICE_CONTENT AS 'body'
         FROM
             NOTICE
         WHERE 1 = 1
@@ -39,21 +39,21 @@
 
     <select id="getNotice" parameterType="int" resultType="com.server.model.NoticeDTO">
         SELECT
-            NOTICE_SEQ AS noticeSeq,
-            NOTICE_TITLE AS strNoticeTitle,
-            NOTICE_DATE AS strNoticeDate,
-            NOTICE_CONTENT AS strNoticeContent
+            NOTICE_SEQ AS 'id',
+            NOTICE_TITLE AS 'title',
+            NOTICE_DATE AS 'date',
+            NOTICE_CONTENT AS 'body'
         FROM
             NOTICE
         ORDER BY NOTICE_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
     </select>
 
     <select id="getHomeNotice" parameterType="String" resultType="com.server.model.NoticeDTO">
         SELECT
-            NOTICE_SEQ AS noticeSeq,
-            NOTICE_TITLE AS strNoticeTitle,
-            NOTICE_DATE AS strNoticeDate
+            NOTICE_SEQ AS 'id',
+            NOTICE_TITLE AS 'title',
+            NOTICE_DATE AS 'date'
         FROM
             NOTICE
         ORDER BY NOTICE_DATE DESC
@@ -73,10 +73,10 @@
         VALUES
             (
             0,
-            #{inquiryTitle},
-            #{inquiryBody},
-            #{inquiryDate},
-            #{inquiryEmail},
+            #{title},
+            #{body},
+            #{date},
+            #{email},
             #{userId}
             )
     </insert>

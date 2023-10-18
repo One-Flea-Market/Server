@@ -35,10 +35,10 @@ public class NoticeDAO {
     }
     private NoticeDTO noticeEntity(ResultSet resultSet) throws SQLException {
         NoticeDTO entity = new NoticeDTO();
-        entity.setNoticeSeq(resultSet.getInt("NOTICE_SEQ"));
-        entity.setStrNoticeTitle(resultSet.getString("NOTICE_TITLE"));
-        entity.setStrNoticeDate(resultSet.getString("NOTICE_DATE"));
-        entity.setStrNoticeContent(resultSet.getString("NOTICE_CONTENT"));
+        entity.setId(resultSet.getInt("NOTICE_SEQ"));
+        entity.setTitle(resultSet.getString("NOTICE_TITLE"));
+        entity.setDate(resultSet.getString("NOTICE_DATE"));
+        entity.setBody(resultSet.getString("NOTICE_CONTENT"));
         // Set other properties as needed
         log.info("entity : {}", entity);
 
@@ -52,9 +52,9 @@ public class NoticeDAO {
     }
     private NoticeDTO homeNoticeEntity(ResultSet resultSet) throws SQLException {
         NoticeDTO entity = new NoticeDTO();
-        entity.setNoticeSeq(resultSet.getInt("NOTICE_SEQ"));
-        entity.setStrNoticeTitle(resultSet.getString("NOTICE_TITLE"));
-        entity.setStrNoticeDate(resultSet.getString("NOTICE_DATE"));
+        entity.setId(resultSet.getInt("NOTICE_SEQ"));
+        entity.setTitle(resultSet.getString("NOTICE_TITLE"));
+        entity.setDate(resultSet.getString("NOTICE_DATE"));
         // Set other properties as needed
         log.info("entity : {}", entity);
 

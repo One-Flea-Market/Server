@@ -8,10 +8,9 @@ import java.util.Set;
 @Data
 public class UserDTO {
     private int id;
-    private String strUserName;
-    private String strEmail;
-    private String strPassword;
-    private String strRole;
-    private String strPhoneNumber;
-    private Set<ProductDTO> likedProducts = new HashSet<>();
+    private String username;
+    private String email;
+    private String passWord;
+    private String role;
+    private String phone_number;
 }

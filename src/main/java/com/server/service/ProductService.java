@@ -29,8 +29,8 @@ public class ProductService {
             int result = productMapper.insertProduct(dto);
 
             Map<String, Object> imageMap = new HashMap<>();
-            imageMap.put("productSeq", dto.getProductSeq());
-            imageMap.put("strProductLink", dto.getStrProductLink());
+            imageMap.put("id", dto.getId());
+            imageMap.put("list", dto.getList());
             //productMapper.insertProductImages(imageMap);
 
             if (result >= 1) {
@@ -47,22 +47,48 @@ public class ProductService {
         }
     }
 
+    public List<ProductDTO> getAllProduct() {
+        log.info("{}", productMapper.getAllProduct());
+        return productMapper.getAllProduct();
+    }
+
     public List<ProductDTO> getProduct(int page) {
         int offset = (page - 1) * 12;
         log.info("offset : {}", offset);
         return productMapper.getProduct(offset);
     }
 
-    public List<ProductDTO> getTransaction(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+    public List<ProductDTO> getTransaction(int page) {
+        int offset = (page - 1) * 12;
         log.info("offset : {}", offset);
-        return productMapper.getTransaction(offset, pageSize);
+        return productMapper.getTransaction(offset);
     }
 
-    public List<ProductDTO> getRental(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+    public List<ProductDTO> getRental(int page) {
+        int offset = (page - 1) * 12;
         log.info("offset : {}", offset);
-        return productMapper.getRental(offset, pageSize);
+        return productMapper.getRental(offset);
+    }
+
+    public List<ProductDTO> getProductBySearch(String search, int page) {
+        int offset = (page - 1) * 12;
+        log.info("offset : {}", offset);
+        search = '%'+search+'%';
+        return productMapper.getProductBySearch(search, offset);
+    }
+
+    public List<ProductDTO> getTransactionBySearch(String search, int page) {
+        int offset = (page - 1) * 12;
+        log.info("offset : {}", offset);
+        search = '%'+search+'%';
+        return productMapper.getTransactionBySearch(search, offset);
+    }
+
+    public List<ProductDTO> getRentalBySearch(String search, int page) {
+        int offset = (page - 1) * 12;
+        log.info("offset : {}", offset);
+        search = '%'+search+'%';
+        return productMapper.getRentalBySearch(search, offset);
     }
 
     public int getProductCount() { return productMapper.getProductCount();}
@@ -71,12 +97,21 @@ public class ProductService {
 
     public int getRentalCount() { return productMapper.getRentalCount();}
 
+    public int getSearchCount(String search) {
+        search = '%'+search+'%';
+        return productMapper.getSearchCount(search);
+    }
+
     public int getUserIdByProductSeq(int id) {
         return productMapper.getUserIdByProductSeq(id);
     }
 
+    public List<ProductDTO> getProductById(int id) {
+        return productMapper.getProductById(id);
+    }
+
     // 상품 상세
-    public List<ProductDTO> getProductById(int id, UserDTO reqDto) {
+    public List<ProductDTO> getProductByIdWithLiked(int id, UserDTO reqDto) {
         List<ProductDTO> productList = productMapper.getProductById(id);
         int userId = reqDto.getId(); // 세션 내의 유저 id
         for (ProductDTO product : productList) {    // 검사
@@ -86,13 +121,13 @@ public class ProductService {
                 product.setOnlike(false);   // 자신이 게시한 상품이기에 찜할 수 없음.
             } else {
                 product.setOnself(false);
-                boolean alreadyLiked = alreadyLiked(userId, product.getProductSeq());   // 레코드가 있는지 검사.
-                log.info("product.getProductSeq() = {}", product.getProductSeq());
+                boolean alreadyLiked = alreadyLiked(userId, product.getId());   // 레코드가 있는지 검사.
+                log.info("product.getId() = {}", product.getId());
                 log.info("userId = {}", userId);
                 log.info("alreadyLiked = {}", alreadyLiked);
                 if(alreadyLiked) {
-                    log.info("service alreadyLiked : {}", productMapper.getLikedByUser(userId, product.getProductSeq()));
-                    product.setOnlike(productMapper.getLikedByUser(userId, product.getProductSeq()));
+                    log.info("service alreadyLiked : {}", productMapper.getLikedByUser(userId, product.getId()));
+                    product.setOnlike(productMapper.getLikedByUser(userId, product.getId()));
                     log.info("service alreadyLiked after : {}", product.isOnlike());
                 } else {
                     product.setOnlike(false);
@@ -132,7 +167,7 @@ public class ProductService {
         if(alreadyLiked) {  // 레코드가 있는지 검사 후에 있다면 이쪽으로 들어갈 것.
             Map<String, Object> params = new HashMap<>();
             params.put("userId", userId);
-            params.put("productSeq", productSeq);
+            params.put("id", productSeq);
             params.put("onlike", onlike);
 
             log.info("{} / {} / {}", userId, productSeq, onlike);

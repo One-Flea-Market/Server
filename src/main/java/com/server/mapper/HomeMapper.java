@@ -12,7 +12,7 @@ public interface HomeMapper {
     int write(NoticeDTO dto);
     int getNoticeCount();
     NoticeDTO getNoticeById(int id);
-    List<NoticeDTO> getNotice(@Param("offset") int offset, @Param("pageSize") int pageSize);
+    List<NoticeDTO> getNotice(@Param("offset") int offset);
     List<NoticeDTO> getHomeNotice();
     int postInquiry(InquiryDTO dto);
 }

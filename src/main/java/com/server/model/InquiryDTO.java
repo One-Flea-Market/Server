@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class InquiryDTO {
-    private int inquirySeq;
-    private String inquiryTitle;
-    private String inquiryBody;
-    private String inquiryDate;
-    private String inquiryEmail;
+    private int id;
+    private String title;
+    private String body;
+    private String date;
+    private String email;
     private int userId;
 }

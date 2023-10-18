@@ -19,12 +19,12 @@
         VALUES
             (
                 0,
-                #{strProductTitle},
-                #{strProductStatus},
-                #{strProductContent},
-                #{strProductDate},
-                #{strProductPrice},
-                #{strProductLink},
+                #{title},
+                #{status},
+                #{body},
+                #{date},
+                #{price},
+                #{list},
                 #{userId},
                 false,
                 false
@@ -57,13 +57,25 @@
         AND PRODUCT_STATUS = '대여'
     </select>
 
+    <select id="getAllProduct" parameterType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
+        FROM
+            PRODUCT
+        ORDER BY PRODUCT_SEQ ASC
+    </select>
+
     <select id="getProduct" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         ORDER BY PRODUCT_SEQ ASC
@@ -73,28 +85,38 @@
     <select id="getProductBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
         <![CDATA[
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         WHERE PRODUCT_TITLE LIKE UPPER(#{search})
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
+        ]]>
+    </select>
+
+    <select id="getSearchCount" parameterType="String" resultType="int">
+        <![CDATA[
+        SELECT
+            COUNT(*)
+        FROM
+            PRODUCT
+        WHERE PRODUCT_TITLE LIKE UPPER(#{search})
         ]]>
     </select>
 
     <select id="getProductById" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
-            PRODUCT_SEQ AS productSeq ,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_CONTENT AS strProductContent,
-            PRODUCT_DATE AS strProductDate,
-            PRODUCT_PRICE AS strProductPrice,
-            PRODUCT_LINK AS strProductLink,
+            PRODUCT_SEQ AS 'id' ,
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_CONTENT AS 'body',
+            PRODUCT_DATE AS 'date',
+            PRODUCT_PRICE AS 'price',
+            PRODUCT_LINK AS 'list',
             USER_ID AS userId,
             ONLIKE AS onlike,
             ONSELF AS onself
@@ -110,19 +132,19 @@
         FROM
             PRODUCT
         WHERE 1 = 1
-          AND PRODUCT_SEQ = #{productSeq}
+          AND PRODUCT_SEQ = #{id}
     </select>
 
     <update id="modifyProduct" parameterType="Map">
         <![CDATA[
         UPDATE PRODUCT
         SET
-            PRODUCT_TITLE = #{strProductTitle},
-            PRODUCT_STATUS = #{strProductStatus},
-            PRODUCT_CONTENT = #{strProductContent},
-            PRODUCT_DATE = #{strProductDate},
-            PRODUCT_PRICE = #{strProductPrice},
-            PRODUCT_LINK = #{strProductLink}
+            PRODUCT_TITLE = #{title},
+            PRODUCT_STATUS = #{status},
+            PRODUCT_CONTENT = #{body},
+            PRODUCT_DATE = #{date},
+            PRODUCT_PRICE = #{price},
+            PRODUCT_LINK = #{list}
         WHERE 1 = 1
           AND PRODUCT_SEQ = #{id}
         ]]>
@@ -130,7 +152,7 @@
 
     <insert id="insertLikeStatus" parameterType="com.server.model.LikeDTO">
         INSERT INTO LIKESTATUS (USER_ID, PRODUCT_SEQ, ONLIKE)
-        VALUES (#{userId}, #{productSeq}, #{onlike})
+        VALUES (#{userId}, #{id}, #{onlike})
     </insert>
 
     <!-- 사용자가 상품을 찜한 상태 업데이트 -->
@@ -138,7 +160,7 @@
         <![CDATA[
         UPDATE LIKESTATUS
         SET ONLIKE = #{onlike}
-        WHERE USER_ID = #{userId} AND PRODUCT_SEQ = #{productSeq}
+        WHERE USER_ID = #{userId} AND PRODUCT_SEQ = #{id}
         ]]>
     </update>
 
@@ -158,65 +180,65 @@
 
     <select id="getTransaction" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         WHERE 1 = 1
         AND PRODUCT_STATUS = '거래'
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
     </select>
 
     <select id="getTransactionBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
         <![CDATA[
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         WHERE 1 = 1
         AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '거래'
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
         ]]>
     </select>
 
     <select id="getRental" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         WHERE 1 = 1
           AND PRODUCT_STATUS = '대여'
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
     </select>
 
     <select id="getRentalBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
         <![CDATA[
         SELECT
-            PRODUCT_SEQ AS productSeq,
-            PRODUCT_TITLE AS strProductTitle,
-            PRODUCT_STATUS AS strProductStatus,
-            PRODUCT_LINK AS strProductLink,
-            PRODUCT_PRICE AS strProductPrice
+            PRODUCT_SEQ AS 'id',
+            PRODUCT_TITLE AS 'title',
+            PRODUCT_STATUS AS 'status',
+            PRODUCT_LINK AS 'list',
+            PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
         WHERE 1 = 1
           AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '대여'
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 12
         ]]>
     </select>
 

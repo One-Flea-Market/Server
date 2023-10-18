@@ -1,5 +1,6 @@
 package com.server.service;
 
+import com.server.mapper.ProductMapper;
 import com.server.mapper.UserMapper;
 import com.server.model.ProductDTO;
 import com.server.model.UserDTO;
@@ -22,6 +23,7 @@ import java.util.Random;
 public class UserService {
 
     private final UserMapper userMapper;
+    private final ProductMapper productMapper;
     private final PasswordEncoder passwordEncoder;
     private static final String FROM_ADDRESS = "hscapstone1@gmail.com";
     @Autowired
@@ -32,11 +34,11 @@ public class UserService {
         log.info("로그인 시도 후 유저 검증 시작 {} ", dto);
 
         String encodedPwd = userMapper.selectEncPwd(dto);
-        String rawPwd = dto.getStrPassword();
+        String rawPwd = dto.getPassWord();
 
         if(passwordEncoder.matches(rawPwd, encodedPwd)) {
             log.info("로그인 시도 후 유저 검증 시작 {} ", passwordEncoder.matches(rawPwd, encodedPwd));
-            dto.setStrPassword(encodedPwd);
+            dto.setPassWord(encodedPwd);
             UserDTO rspDto = userMapper.selectOneUser(dto);
             log.info("로그인 시도 후 유저 검증 시작 {} ", rspDto);
             return rspDto;
@@ -48,8 +50,8 @@ public class UserService {
     public int joinUser(UserDTO dto) {
         log.info("회원가입 시도");
 
-        dto.setStrRole("USER");
-        dto.setStrPassword(passwordEncoder.encode(dto.getStrPassword()));
+        dto.setRole("USER");
+        dto.setPassWord(passwordEncoder.encode(dto.getPassWord()));
 
         int flag = 1;
         int result = userMapper.joinUser(dto);
@@ -105,11 +107,16 @@ public class UserService {
         return rspDto;
     }
 
-    public int getMyProductCount(int id) {
-        return userMapper.getMyProductCount(id);
-    }
-
     public List<ProductDTO> getMyProduct(int id) {
         return userMapper.getMyProduct(id);
+    }
+
+    public Boolean getMyLikedProducts(int userId, int productSeq) {
+        log.info("userId : {}", userId);
+        log.info("productSeq : {}", productSeq);
+
+
+        boolean onlike = productMapper.getLikedByUser(userId, productSeq);
+        return onlike;
     }
 }
