@@ -33,14 +33,19 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpSession session) {
 
+        Map<String, Object> response = new HashMap<>();
+
         UserDTO rspDto = userService.getOneUser(dto);
         if (rspDto != null) {
             /* session 생성 처리 필요 */
             session.setAttribute("dto", rspDto);
             session.setMaxInactiveInterval(1800);
-            return new ResponseEntity<>(rspDto, HttpStatus.OK);
+            response.put("result", true);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        response.put("result", false);
+        response.put("message", "이메일 혹은 비밀번호가 틀립니다.");
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     /* 회원가입 */
@@ -48,7 +53,15 @@ public class UserController {
     public ResponseEntity<?> join(@RequestBody UserDTO dto) {
         int flag = userService.joinUser(dto);
 
-        return new ResponseEntity<>(flag, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+
+        if(flag == 0) {
+            response.put("result", true);
+        } else {
+            response.put("result", false);
+            response.put("message", "모종의 이유로 회원가입에 실패했습니다.");
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /* 로그아웃 */
@@ -63,66 +76,64 @@ public class UserController {
     /* 세션 체크 */
     @GetMapping("/check")
     public ResponseEntity<?> sessionCheck(HttpServletRequest request) {
-        boolean sessionFlagYN = false;
+
+        Map<String, Object> response = new HashMap<>();
+
         request.getSession(false);
         log.info("세션 조회 {}",request.getSession(false));
         if(request.getSession(false) == null) {
-            sessionFlagYN = false;
+            response.put("login", false);
         } else {
-            sessionFlagYN = true;
+            response.put("login", true);
         }
-        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /* 이메일 인증 및 중복 체크 */
     @PostMapping("/sign-in/email")
-    public ResponseEntity<MessageRes> emailCheck(@RequestParam String email) {
-        MessageRes messageRes = new MessageRes();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> emailCheck(@RequestParam String email) {
+
+        Map<String, Object> response = new HashMap<>();
 
         log.info("이메일 확인 {}", email);
         String result = userService.emailCheck(email);
         log.info("이메일 로그 확인 {}", result);
 
         if (Objects.equals(result, email)) {
-            messageRes.setMessage("이미 존재하는 이메일입니다.");
-            messageRes.setResult(false);
+            response.put("message", "이미 등록되어 있는 이메일 입니다.");
+            response.put("result", false);
 
-            return new ResponseEntity<>(messageRes, headers, HttpStatus.OK);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
             String systemAuthNumber = userService.mailSender(email);
             log.info("인증 번호 : {}", systemAuthNumber);
 
-            messageRes.setResult(true);
-            //messageRes.setAuth("systemAuthNumber");
-            messageRes.setAuth(systemAuthNumber);
+            response.put("result", true);
+            response.put("Auth", systemAuthNumber);
 
-            return new ResponseEntity<>(messageRes, headers, HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
 
     /* 닉네임 중복 체크 */
     @PostMapping("/sign-in/username")
-    public ResponseEntity<MessageRes> nameCheck(@RequestParam String name) {
-        MessageRes messageRes = new MessageRes();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> nameCheck(@RequestParam String name) {
+        Map<String, Object> response = new HashMap<>();
 
         log.info("닉네임 확인 {}", name);
         String result = userService.nameCheck(name);
         log.info("닉네임 로그 확인 {}", result);
 
         if (Objects.equals(result, name)) {
-            messageRes.setMessage("이미 존재하는 닉네임입니다.");
-            messageRes.setResult(false);
+            response.put("message", "이미 등록되어 있는 닉네임 입니다.");
+            response.put("result", false);
 
-            return new ResponseEntity<>(messageRes, headers, HttpStatus.OK);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
-            messageRes.setResult(true);
-            messageRes.setAuth("사용 가능한 닉네임 입니다.");
+            response.put("message", "사용 가능한 닉네임 입니다.");
+            response.put("result", true);
 
-            return new ResponseEntity<>(messageRes, headers, HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
 
@@ -220,13 +231,12 @@ public class UserController {
                 // 결과가 있는 경우, products 리스트에 결과가 저장되어 있습니다.
                 log.info("Number of products found: {}", productList.size());
             }
-            log.info("productList 1 : {}", productList);
+            log.info("productList : {}", productList);
 
             // 응답 데이터 구성을 위한 리스트
             List<Map<String, Object>> responseList = new ArrayList<>();
 
             for (ProductDTO listDto : productList) {
-                log.info("listDto : {}", listDto);
                 Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
                 boolean onlike = userService.getMyLikedProducts(userId, listDto.getId());
                 log.info("onlike : {}", onlike);
@@ -251,11 +261,38 @@ public class UserController {
                     // 응답 데이터에 상품 정보 추가
                     responseList.add(productMap);
                 }
-                log.info("productList 2 : {}", productList);
             }
 
             response.put("list", responseList);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/cart/{id}")
+    public ResponseEntity<?> deleteCart (@PathVariable int id, HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        if (session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
+            log.info("로그인 필요");
+            response.put("login", false);   // login : false 객체 설정
+        } else {
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+            log.info("session user : {}", session.getAttribute("dto"));
+            int userId = reqDto.getId();
+            int productSeq = id;
+
+            int flag = userService.deleteCart(userId, productSeq);
+
+            if(flag == 0) {
+                log.info("성공");
+                response.put("result", true);
+            } else {
+                log.info("실패");
+                response.put("result", false);
+                response.put("message", "모종의 이유로 삭제에 실패했습니다.");
+            }
+        }
+        return ResponseEntity.ok(response);
     }
 }

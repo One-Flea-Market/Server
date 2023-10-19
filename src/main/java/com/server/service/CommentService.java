@@ -41,6 +41,7 @@ public class CommentService {
         int flag = 1;
         int result = commentMapper.modifyBoardComment(map);
 
+        log.info("map : {}", map);
         if(result >= 1) {
             flag = 0;
         } else {
@@ -105,7 +106,14 @@ public class CommentService {
         return flag;
     }
 
-    public int getUserIdByCommentSeq(int id) {
-        return commentMapper.getUserIdByCommentSeq(id);
+    public Integer getUserIdByBCommentSeq(int id) {
+        Integer result = commentMapper.getUserIdByBCommentSeq(id);
+
+        return result != null ? result : 0;
+    }
+    public Integer getUserIdByPCommentSeq(int id) {
+        Integer result = commentMapper.getUserIdByPCommentSeq(id);
+
+        return result != null ? result : 0;
     }
 }

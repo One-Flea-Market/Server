@@ -14,8 +14,8 @@
         VALUES
             (
              0,
-             #{boardCommentBody},
-             #{boardCommentDate},
+             #{body},
+             #{date},
              #{userId},
              #{boardSeq},
              #{onself}
@@ -24,9 +24,9 @@
 
     <select id="getBoardComment" resultType="com.server.model.BoardCommentDTO">
         SELECT
-            COMMENT_SEQ AS boardCommentSeq,
-            COMMENT_BODY AS boardCommentBody,
-            COMMENT_DATE AS boardCommentDate,
+            COMMENT_SEQ AS id,
+            COMMENT_BODY AS body,
+            COMMENT_DATE AS 'date',
             USER_ID AS userId,
             BOARD_SEQ AS boardSeq,
             ONSELF AS onself
@@ -39,8 +39,8 @@
         <![CDATA[
         UPDATE BOARD_COMMENT
         SET
-            COMMENT_BODY = #{boardCommentBody},
-            COMMENT_DATE = #{boardCommentDate}
+            COMMENT_BODY = #{body},
+            COMMENT_DATE = #{date}
         WHERE
             BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
         ]]>
@@ -66,8 +66,8 @@
         VALUES
             (
                 0,
-                #{productCommentBody},
-                #{productCommentDate},
+                #{body},
+                #{date},
                 #{userId},
                 #{productSeq},
                 #{onself}
@@ -76,9 +76,9 @@
 
     <select id="getProductComment" resultType="com.server.model.ProductCommentDTO">
         SELECT
-            COMMENT_SEQ AS productCommentSeq,
-            COMMENT_BODY AS productCommentBody,
-            COMMENT_DATE AS productCommentDate,
+            COMMENT_SEQ AS id,
+            COMMENT_BODY AS body,
+            COMMENT_DATE AS 'date',
             USER_ID AS userId,
             PRODUCT_SEQ AS productSeq,
             ONSELF AS onself
@@ -91,8 +91,8 @@
         <![CDATA[
         UPDATE PRODUCT_COMMENT
         SET
-            COMMENT_BODY = #{productCommentBody},
-            COMMENT_DATE = #{productCommentDate}
+            COMMENT_BODY = #{body},
+            COMMENT_DATE = #{date}
         WHERE
             PRODUCT_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
         ]]>
@@ -105,12 +105,21 @@
         ]]>
     </delete>
     
-    <select id="getUserIdByCommentSeq" parameterType="int" resultType="int">
+    <select id="getUserIdByPCommentSeq" parameterType="int" resultType="int">
         SELECT
             USER_ID AS userId
         FROM
             PRODUCT_COMMENT
         WHERE 1 = 1
-          AND COMMNET_SEQ = #{commentSeq}
+          AND COMMENT_SEQ = #{commentId}
+    </select>
+
+    <select id="getUserIdByBCommentSeq" parameterType="int" resultType="int">
+        SELECT
+            USER_ID AS userId
+        FROM
+            BOARD_COMMENT
+        WHERE 1 = 1
+          AND COMMENT_SEQ = #{commentId}
     </select>
 </mapper>

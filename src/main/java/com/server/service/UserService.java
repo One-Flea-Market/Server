@@ -115,8 +115,23 @@ public class UserService {
         log.info("userId : {}", userId);
         log.info("productSeq : {}", productSeq);
 
+        Boolean result = productMapper.getLikedByUser(userId, productSeq);
 
-        boolean onlike = productMapper.getLikedByUser(userId, productSeq);
-        return onlike;
+        return result != null ? result : false;
+    }
+
+    public int deleteCart(int userId, int productSeq) {
+        log.info("userId : {}", userId);
+        log.info("productSeq : {}", productSeq);
+
+        int flag = 1;
+        int result = productMapper.deleteCart(userId, productSeq);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
     }
 }

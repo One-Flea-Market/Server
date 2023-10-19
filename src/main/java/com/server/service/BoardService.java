@@ -37,27 +37,39 @@ public class BoardService {
     }
 
     /* 게시글 조회 서비스 */
-    public List<BoardDTO> getBoard(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+    public List<BoardDTO> getBoard(int page) {
+        int offset = (page - 1) * 10;
         log.info("offset : {}", offset);
-        return boardMapper.getBoard(offset, pageSize);
+        return boardMapper.getBoard(offset);
     }
 
-    public int getUserIdByBoardSeq(int id) {
-        return boardMapper.getUserIdByBoardSeq(id);
+    public Integer getUserIdByBoardSeq(int id) {
+        Integer result = boardMapper.getUserIdByBoardSeq(id);
+
+        return result != null ? result : 0;
     }
+
     /* 게시글 조회 by 게시글 고유 id */
-    public BoardDTO getBoardById(int id) {
+    public List<BoardDTO> getBoardById(int id) {
         return boardMapper.getBoardById(id);
     }
 
-    /* 게시글 조회 by 검색어 */
-    public List<BoardDTO> getBoardBySearch(String search, int offset, int pageSize) {
+    public String getNameByUserId(int id) {
+        return boardMapper.getNameByUserId(id);
+    }
 
-        log.info("요청 받은 검색어: {}", search);
+    /* 게시글 조회 by 검색어 */
+    public List<BoardDTO> getBoardBySearch(String search, int page) {
+
+        int offset = (page - 1) * 10;
         log.info("offset : {}", offset);
-        log.info("{}",boardMapper.getBoardBySearch(search, offset, pageSize));
-        return boardMapper.getBoardBySearch(search, offset, pageSize);
+        search = '%'+search+'%';
+        return boardMapper.getBoardBySearch(search, offset);
+    }
+
+    public int getBoardCountBySearch(String search) {
+        search = '%'+search+'%';
+        return boardMapper.getBoardCountBySearch(search);
     }
 
     public int modifyBoard(Map<String, Object> map) {

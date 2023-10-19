@@ -53,10 +53,10 @@ public class ProductController {
 
         for (ProductDTO listDto : productList) {
             Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
-            productMap.put("productSeq", listDto.getId());                  // 상품 고유 id 설정
-            productMap.put("strProductTitle", listDto.getTitle());        // 상품 이름 설정
-            productMap.put("strProductStatus", listDto.getStatus());      // 상품 카테고리 설정
-            productMap.put("strProductPrice", listDto.getPrice());        // 상품 가격 설정
+            productMap.put("id", listDto.getId());                  // 상품 고유 id 설정
+            productMap.put("title", listDto.getTitle());        // 상품 이름 설정
+            productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
+            productMap.put("price", listDto.getPrice());        // 상품 가격 설정
 
             String linkAsString = listDto.getList();
             List<String> imageLinks = Arrays.asList(linkAsString.split(","));
@@ -67,7 +67,7 @@ public class ProductController {
                 int randomIndex = random.nextInt(imageLinks.size());
 
                 String representativeImage = imageLinks.get(randomIndex);
-                productMap.put("strProductLink", representativeImage);
+                productMap.put("list", representativeImage);
             }
 
             // 응답 데이터에 상품 정보 추가
@@ -111,11 +111,11 @@ public class ProductController {
             log.info("session user : {}", session.getAttribute("dto"));
 
             ProductDTO dto = new ProductDTO();
-            dto.setTitle(requestDTO.getStrProductTitle());
-            dto.setStatus(requestDTO.getStrProductStatus());
-            dto.setBody(requestDTO.getStrProductContent());
-            dto.setDate(requestDTO.getStrProductDate());
-            dto.setPrice(requestDTO.getStrProductPrice());
+            dto.setTitle(requestDTO.getTitle());
+            dto.setStatus(requestDTO.getStatus());
+            dto.setBody(requestDTO.getBody());
+            dto.setDate(requestDTO.getDate());
+            dto.setPrice(requestDTO.getPrice());
             dto.setUserId(reqDto.getId());
 
             List<MultipartFile> images = requestDTO.getImageFiles();
@@ -177,16 +177,16 @@ public class ProductController {
 
         for (ProductDTO listDto : productList) {
             Map<String, Object> productMap = new LinkedHashMap<>();
-            productMap.put("productSeq", listDto.getId());
-            productMap.put("strProductTitle", listDto.getTitle());
-            productMap.put("strProductStatus", listDto.getStatus());
-            productMap.put("strProductContent", listDto.getBody());
-            productMap.put("strProductDate", listDto.getDate());
-            productMap.put("strProductPrice", listDto.getPrice());
+            productMap.put("id", listDto.getId());
+            productMap.put("title", listDto.getTitle());
+            productMap.put("status", listDto.getStatus());
+            productMap.put("body", listDto.getBody());
+            productMap.put("date", listDto.getDate());
+            productMap.put("price", listDto.getPrice());
 
             String linkAsString = listDto.getList();
             List<String> imageLinks = Arrays.asList(linkAsString.split(","));
-            productMap.put("strProductLink", imageLinks);
+            productMap.put("list", imageLinks);
 
             if (userId == reqDto.getId()) {
                 response.put("message", "본인이 등록한 상품입니다.");
@@ -207,48 +207,42 @@ public class ProductController {
 
     /* 상품 수정 */
     @PutMapping("/{id}/modify")
-    public ResponseEntity<MessageResProduct> modifyBoard(@PathVariable int id, @RequestBody Map<String, Object> map,
+    public ResponseEntity<?> modifyBoard(@PathVariable int id, @RequestBody Map<String, Object> map,
                                                        ProductDTO dto, HttpSession session) {
-        MessageResProduct messageResProduct = new MessageResProduct();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        log.info("{}", id);
+        Map<String, Object> response = new HashMap<>();
 
-        String sessionFlagYN = "N";
-
-        if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
-        } else { // 세션이 있으면 여길 탈듯
-            /* 상품 수정 서비스 호출 */
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setUserId(reqDto.getId());
-
-            // 상품안의 USER_ID 검색
-            int userId = productService.getUserIdByProductSeq(id);
-
-            if (userId == reqDto.getId()) {
-                messageResProduct.setOnself(true);
-
-                messageResProduct.setOnlike(false);
-
-                map.put("id", id);
-                int flag = productService.modifyProduct(map);
-                //dto.setOnLike(0); // 0일때 onlike가 false
-                if (flag == 0) {
-                    messageResProduct.setResult(true);
-                } else {
-                    messageResProduct.setResult(false);
-                    messageResProduct.setMessage("상품 정보 수정에 실패했습니다.");
-                }
-            } else {
-                messageResProduct.setMessage("본인이 등록한 상품이 아닙니다.");
-            }
-            /* 상품 수정 완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResProduct, headers, HttpStatus.OK);
+        /* 상품 조회 서비스 호출 */
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+        log.info("session user : {}", session.getAttribute("dto"));
+        dto.setUserId(reqDto.getId());
+
+        // 상품 안의 userId 조회
+        int userId = productService.getUserIdByProductSeq(id);
+
+        log.info("로그인 중인 유저 Id : {}", reqDto.getId());
+        log.info("상품 등록한 유저 Id : {}", userId);
+
+        if (userId == reqDto.getId()) {
+            int flag = productService.modifyProduct(map);
+
+            if (flag == 0) {
+                response.put("result", true);
+            } else {
+                response.put("result", false);
+                response.put("message", "상품 정보 수정에 실패했습니다.");
+            }
+        } else {
+            response.put("message", "본인이 등록한 상품이 아닙니다.");
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     /* 상품 찜하기 */
@@ -451,7 +445,7 @@ public class ProductController {
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
-            log.info("get board : {}", productService.getProductByIdWithLiked(id, reqDto));
+            log.info("get product : {}", productService.getProductByIdWithLiked(id, reqDto));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
             int productSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 

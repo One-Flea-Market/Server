@@ -1,10 +1,8 @@
 package com.server.controller;
 
-import com.server.model.BoardCommentDTO;
-import com.server.model.BoardDTO;
-import com.server.model.ProductCommentDTO;
+import com.server.mapper.BoardMapper;
+import com.server.model.*;
 import com.server.response.MessageResBoard;
-import com.server.model.UserDTO;
 import com.server.service.BoardService;
 import com.server.service.CommentService;
 import jakarta.servlet.http.HttpSession;
@@ -18,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -37,167 +32,227 @@ public class BoardController {
         객체안 board 원소의 배열의 길이는 몇개씩 보내도 상관없음(가능하면 10개 정도로 잘라서 보내기)
         next 는 앞서보여준 10개를 제외하고 보여줄 공지가 더있으면 true 없으면 false */
     @GetMapping("")
-    public ResponseEntity<MessageResBoard> boardView() {
+    public ResponseEntity<?> boardView() {
         MessageResBoard messageResBoard = new MessageResBoard();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
 
         int page = 1;
         int pageSize = 10;
-        int flag = 0;
         int count = boardService.getBoardCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
-        while((page - 1) * pageSize <= count) {
-            log.info("while 문 안의 page : {}", page);
-            messageResBoard.setBoardList(boardService.getBoard(page, pageSize));
-            log.info("BoardList : {}", messageResBoard.getBoardList());
-            if (count >= (page - 1) * pageSize) {
-                messageResBoard.setNext(true);
-                flag = page * pageSize;
-                page++;
-                log.info(" flag : {}", flag);
-                if (count <= flag) {
-                    messageResBoard.setNext(false);
-                }
-            } else {
-                messageResBoard.setNext(false);
-            }
-            log.info("컬럼이 더 있는가? : {}", messageResBoard.isNext());
-        }
-        log.info("while 문 밖의 page : {}", page);
+        // 서비스에서 게시글 목록을 가져옴
+        List<BoardDTO> boardList = boardService.getBoard(page);
 
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        // 응답 데이터 구성을 위한 리스트
+        List<Map<String, Object>> responseList = new ArrayList<>();
+
+        // 현재 페이지에서 보내줄 게시글 개수
+        int boardCount = 0;
+
+        for(BoardDTO listDto : boardList) {
+            Map<String, Object> boardMap = new LinkedHashMap<>();
+            boardMap.put("id", listDto.getId());
+            boardMap.put("title", listDto.getTitle());
+            boardMap.put("date", listDto.getDate());
+
+            responseList.add(boardMap);
+
+            boardCount++;
+
+            if(boardCount >= pageSize) {
+                page++;
+                log.info("{}", page);
+                break;
+            }
+        }
+        log.info("boardList : {]", boardList);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("list", responseList);
+        response.put("next", boardCount >= pageSize);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /* 게시글 작성 */
     @PostMapping("/new")
-    public ResponseEntity<?> boardWrite(@RequestBody BoardDTO dto, HttpSession session) {
-        String sessionFlagYN = "N";
-        boolean result;
+    public ResponseEntity<?> boardWrite(@RequestBody BoardRequestDTO requestDTO, HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
 
-        if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 작성 서비스 호출 */
-             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-             log.info("session user : {}", session.getAttribute("dto"));
-             dto.setUserId(reqDto.getId());
-             int flag = boardService.writeBoard(dto);
+            /* 상품 등록 서비스 호출 */
+            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+            log.info("session user : {}", session.getAttribute("dto"));
+
+            BoardDTO dto = new BoardDTO();
+            dto.setTitle(requestDTO.getTitle());
+            dto.setBody(requestDTO.getBody());
+            dto.setDate(requestDTO.getDate());
+            dto.setUserId(reqDto.getId());
+
+            int flag = boardService.writeBoard(dto);
 
              if(flag == 0) {
-                 result = true;
+                 response.put("result", true);
              } else {
-                 result = false;
+                 response.put("result", false);
+                 response.put("message", "실패");
              }
-             /* 게시글 작성완료는 0이면 true 아니면 false */
-             return new ResponseEntity<>(result, HttpStatus.OK);
         }
-        /* 세션이 없으면 N */
-        return new ResponseEntity<>(sessionFlagYN, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     /*  게시글 고유 id로 게시글 조회
         url 에 있는 id로 게시글정보를 가져오며 가져온 게시글이 자신이 작성 한 경우  oneself 는 true 아니면 false */
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDTO> getBoardById(@PathVariable int id) {
+    public ResponseEntity<?> getBoardById(@PathVariable int id, BoardDTO dto, HttpSession session) {
         log.info("{}", id);
-        BoardDTO dto = boardService.getBoardById(id);
+        Map<String, Object> response = new HashMap<>();
 
-        log.info("{}", dto);
-        if (dto == null) {
-            // 게시글이 없을 경우 404 Not Found 응답을 보냄
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         }
 
-        // 게시글 정보를 BoardDTO 에 매핑하여 응답
-        BoardDTO boardDTO = new BoardDTO();
-        boardDTO.setStrTitle(dto.getStrTitle());
-        boardDTO.setStrDate(dto.getStrDate());
-        boardDTO.setStrContent(dto.getStrContent());
-        boardDTO.setBoardSeq(dto.getBoardSeq());
-        boardDTO.setUserId(dto.getUserId());
+        /* 상품 조회 서비스 호출 */
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+        log.info("session user : {}", session.getAttribute("dto"));
+        dto.setUserId(reqDto.getId());
 
-        return new ResponseEntity<>(boardDTO, HttpStatus.OK);
+        // 상품안의 USER_ID 검색
+        int userId = boardService.getUserIdByBoardSeq(id);
+
+        log.info("로그인 중인 유저 Id : {}", reqDto.getId());
+        log.info("상품 등록한 유저 Id : {}", userId);
+
+        List<BoardDTO> productList = boardService.getBoardById(id);   // 상품 리스트 호출
+        List<Map<String, Object>> responseList = new ArrayList<>();
+
+        for (BoardDTO listDto : productList) {
+            Map<String, Object> boardMap = new LinkedHashMap<>();
+            boardMap.put("id", listDto.getId());
+            boardMap.put("title", listDto.getTitle());
+            boardMap.put("date", listDto.getDate());
+            boardMap.put("body", listDto.getBody());
+            boardMap.put("user", boardService.getNameByUserId(listDto.getUserId()));
+
+            if (userId == reqDto.getId()) {
+                boardMap.put("onself", true);
+            }
+
+            if(userId != reqDto.getId()) {
+                boardMap.put("onself", false);
+            }
+
+            responseList.add(boardMap);
+        }
+        return new ResponseEntity<>(responseList, HttpStatus.OK);
     }
 
     /*  검색어로 게시글 조회
         */
     @GetMapping("/search/{search}")
-    public ResponseEntity<MessageResBoard> getBoardBySearch(@PathVariable String search,
-                                                             @RequestParam(defaultValue = "1") int page,
-                                                             @RequestParam(defaultValue = "10") int pageSize) {
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> getBoardBySearch(@PathVariable String search) {
+        int page = 1;
+        int pageSize = 10;
+        int count = boardService.getBoardCountBySearch(search);
+        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
-        Map<String, Object> map = new HashMap<>();
-        int offset = (page - 1) * pageSize;
+        // 서비스에서 상품 목록을 가져옴
+        List<BoardDTO> boardList = boardService.getBoardBySearch(search, page);
 
-        map.put("search", "%" + search.toUpperCase() + "%");
-        map.put("offset", offset);
-        map.put("pageSize", pageSize);
+        // 응답 데이터 구성을 위한 리스트
+        List<Map<String, Object>> responseList = new ArrayList<>();
 
-        List<BoardDTO> result = sqlSession.selectList("com.server.mapper.BoardMapper.getBoardBySearch", map);
+        // 현재 페이지에서 보내줄 상품 개수
+        int boardCount = 0;
 
-        if (result.isEmpty()) {
-            // 결과가 없을 때 처리
-            messageResBoard.setNext(false);
-        } else {
-            if(result.size() < pageSize) {
-                messageResBoard.setBoardList(result);
-                messageResBoard.setNext(false);
-            } else{
-                // 결과가 있을 때 처리
-                messageResBoard.setBoardList(result);
-                messageResBoard.setNext(true);
+        for (BoardDTO listDto : boardList) {
+            Map<String, Object> boardMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
+            boardMap.put("id", listDto.getId());                  // 상품 고유 id 설정
+            boardMap.put("title", listDto.getTitle());        // 상품 이름 설정
+            boardMap.put("date", listDto.getDate());      // 상품 카테고리 설정
+
+            // 응답 데이터에 상품 정보 추가
+            responseList.add(boardMap);
+
+            // 현재 페이지에서 보내준 상품 개수 증가
+            boardCount++;
+
+            // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
+            if (boardCount >= pageSize) {
+                page++;
+                log.info("{}", page);
+                break;
             }
         }
+        log.info("productList : {}", boardList);
 
-        log.info("컬럼이 더 있는가? : {}", messageResBoard.isNext());
-        log.info("현재 페이지: {}, 오프셋: {}, 총 검색된 결과 수: {}", page, offset, result.size());
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        response.put("list", responseList);
+        response.put("next", boardCount >= pageSize);
+
+        log.info("while 문 밖의 page : {}", page);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /* 게시글 수정 */
     @PatchMapping("/{id}/modify")
-    public ResponseEntity<MessageResBoard> modifyBoard(@PathVariable int id, @RequestBody Map<String, Object> map,
+    public ResponseEntity<?> modifyBoard(@PathVariable int id, @RequestBody Map<String, Object> map,
                                                        BoardDTO dto, HttpSession session) {
 
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        log.info("{}", id);
+        Map<String, Object> response = new HashMap<>();
 
-        String sessionFlagYN = "N";
+        if (session.getAttribute("dto") == null) {
+            log.info("실패");
+            response.put("result", false);
+            response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
+        }
+        /* 상품 조회 서비스 호출 */
+        UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+        log.info("session user : {}", session.getAttribute("dto"));
+        dto.setUserId(reqDto.getId());
 
-        if(session.getAttribute("dto") == null) {
-            sessionFlagYN = "N";
-        } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 수정 서비스 호출 */
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setUserId(reqDto.getId());
+        // 상품 안의 userId 조회
+        int userId = boardService.getUserIdByBoardSeq(id);
 
-            map.put("id", id);
+        log.info("로그인 중인 유저 Id : {}", reqDto.getId());
+        log.info("게시글 등록한 유저 Id : {}", userId);
+
+        map.put("id", id);
+
+        if (userId == reqDto.getId()) {
             int flag = boardService.modifyBoard(map);
 
-            if(flag == 0) {
-                messageResBoard.setResult(true);
+            if (flag == 0) {
+                response.put("result", true);
             } else {
-                messageResBoard.setResult(false);
-                messageResBoard.setMessage("게시글 수정에 실패했습니다.");
+                response.put("result", false);
+                response.put("message", "게시글 수정에 실패했습니다.");
             }
-            /* 게시글 작성완료는 0이면 true 아니면 false */
-            return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        } else {
+            response.put("result", false);
+            response.put("message", "본인이 등록한 게시글이 아닙니다.");
         }
-        /* 세션이 없으면 N */
-        log.info("session : {}", sessionFlagYN);
-        return new ResponseEntity<>(messageResBoard, headers, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     /* 게시글 삭제 */
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Object> deleteBoard(@PathVariable int id, HttpSession session) {
+    public ResponseEntity<?> deleteBoard(@PathVariable int id, HttpSession session) {
 
         log.info("게시글 id : {}", id);
             Map<String, Object> response = new HashMap<>();
@@ -206,15 +261,23 @@ public class BoardController {
                 log.info("실패");
                 response.put("result", false);
                 response.put("message", "로그인 상태가 아닙니다.");
+                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
             } else { // 세션이 있으면 여길 탈듯
                 /* 상품 조회 서비스 호출 */
                 UserDTO reqDto = (UserDTO) session.getAttribute("dto");
                 log.info("session user : {}", session.getAttribute("dto"));
                 int userId = reqDto.getId();    // 세션에서 가져온 유저 id
-                int idUser = boardService.getUserIdByBoardSeq(id);  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
+                Integer idUser = boardService.getUserIdByBoardSeq(id);  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
 
             log.info("로그인 중인 유저 Id : {}", userId);
             log.info("게시글 등록한 유저 Id : {}", idUser);
+
+            if(idUser == 0){
+                log.info("해당 id의 게시글 미존재");
+                response.put("result", false);
+                response.put("message", "게시글이 없습니다.");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
 
             if(userId == idUser) {
                 int flag = boardService.deleteBoard(id);
@@ -238,15 +301,15 @@ public class BoardController {
 
     /* 댓글 조회 */
     @GetMapping("/{id}/comment")
-    public ResponseEntity<List<BoardCommentDTO>> commentOnProduct(@PathVariable int id, HttpSession session) {
-        log.info("상품 id : {}", id);
+    public ResponseEntity<?> commentOnProduct(@PathVariable int id, HttpSession session) {
+        log.info("게시글 id : {}", id);
         Map<String, Object> response = new HashMap<>();
 
         if (session.getAttribute("dto") == null) {
             log.info("실패");
             response.put("result", false);
             response.put("message", "로그인 상태가 아닙니다.");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         }
 
         UserDTO reqDto = (UserDTO) session.getAttribute("dto");
@@ -263,9 +326,6 @@ public class BoardController {
 
         for (BoardCommentDTO boardComment : reqDtoBoard) {    // 검사
             int userIdByBoardComment = boardComment.getUserId(); // 댓글을 등록한 유저의 id를 가져옴.
-
-            log.info("로그인 중인 유저 Id : {}", userId);
-            log.info("댓글 등록한 유저 Id : {}", userIdByBoardComment);
 
             if (userId == userIdByBoardComment) {
                 boardComment.setOnself(true);
@@ -287,6 +347,7 @@ public class BoardController {
             log.info("실패");
             response.put("result", false);
             response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         } else { // 세션이 있으면 여길 탈듯
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
@@ -323,33 +384,54 @@ public class BoardController {
             log.info("실패");
             response.put("result", false);
             response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         } else { // 세션이 있으면 여길 탈듯
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
             log.info("get board : {}", boardService.getBoardById(id));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
-            int boardSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
+            int idUser = commentService.getUserIdByBCommentSeq(commentId);  // 게시글 id를 이용해 댓글 테이블에서 가져온 유저 id
+            int boardSeq = id;
+
+            log.info("userId : {}", userId);
+            log.info("idUser : {}", idUser);
 
             dto.setUserId(userId);
             dto.setBoardSeq(boardSeq);
 
             map.put("id", id);
             map.put("commentId", commentId);
-            int flag = commentService.modifyBoardComment(map);
+            log.info("id : {}", map.put("id", id));
+            log.info("commentId : {}", map.put("commentId", commentId));
 
-            if (flag == 0) {
-                log.info("성공");
-                response.put("result", true);
-            } else {
-                log.info("실패");
+            if(idUser == 0){
+                log.info("해당 id의 댓글 미존재");
                 response.put("result", false);
-                response.put("message", "모종의 이유로 댓글 수정에 실패했습니다.");
+                response.put("message", "댓글이 없습니다.");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
+            if(userId == idUser) {
+                int flag = commentService.modifyBoardComment(map);
+                if(flag == 0) {
+                    log.info("성공");
+                    response.put("result", true);
+                } else {
+                    log.info("실패");
+                    response.put("result", false);
+                    response.put("message", "모종의 이유로 수정에 실패했습니다.");
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } else {
+                response.put("result", false);
+                response.put("message", "작성자 이외에는 수정할 수 없습니다.");
             }
         }
         return ResponseEntity.ok(response);
     }
 
+    /* 댓글 삭제 */
     @DeleteMapping("/{id}/comment/{commentId}/delete")
     public ResponseEntity<?> deleteBoardComment(@PathVariable int id, @PathVariable int commentId,
                                                 BoardCommentDTO dto, HttpSession session) {
@@ -361,26 +443,41 @@ public class BoardController {
             log.info("실패");
             response.put("result", false);
             response.put("message", "로그인 상태가 아닙니다.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         } else { // 세션이 있으면 여길 탈듯
             /* 상품 조회 서비스 호출 */
             UserDTO reqDto = (UserDTO) session.getAttribute("dto");
             log.info("session user : {}", session.getAttribute("dto"));
             log.info("get board : {}", boardService.getBoardById(id));
             int userId = reqDto.getId();    // 세션에서 가져온 유저 id
-            int boardSeq = id;  // 게시글 id를 이용해 게시글 테이블에서 가져온 유저 id
-
+            int idUser = commentService.getUserIdByBCommentSeq(commentId); // 게시글 id를 이용해 댓글 테이블에서 가져온 유저 id
+            int boardSeq = id;
+            log.info("userId : {}", userId);
+            log.info("idUser : {}", idUser);
             dto.setUserId(userId);
             dto.setBoardSeq(boardSeq);
 
-            int flag = commentService.deleteBoardComment(id, commentId);
-
-            if (flag == 0) {
-                log.info("성공");
-                response.put("result", true);
-            } else {
-                log.info("실패");
+            if(idUser == 0){
+                log.info("해당 id의 댓글 미존재");
                 response.put("result", false);
-                response.put("message", "모종의 이유로 댓글 삭제에 실패했습니다.");
+                response.put("message", "댓글이 없습니다.");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
+            if(userId == idUser) {
+                int flag = commentService.deleteBoardComment(id, commentId);
+                if (flag == 0) {
+                    log.info("성공");
+                    response.put("result", true);
+                } else {
+                    log.info("실패");
+                    response.put("result", false);
+                    response.put("message", "모종의 이유로 삭제에 실패했습니다.");
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } else {
+                response.put("result", false);
+                response.put("message", "작성자 이외에는 삭제할 수 없습니다.");
             }
         }
         return ResponseEntity.ok(response);

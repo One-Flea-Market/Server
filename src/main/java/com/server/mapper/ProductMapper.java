@@ -28,8 +28,9 @@ public interface ProductMapper {
     List<ProductDTO> getTransaction(@Param("offset") int offset);
     List<ProductDTO> getRental(@Param("offset") int offset);
     boolean isAlreadyLiked(@Param("userId") int userId, @Param("productSeq") int productSeq);
-    boolean getLikedByUser(@Param("userId") int userId, @Param("productSeq") int productSeq);
+    Boolean getLikedByUser(@Param("userId") int userId, @Param("productSeq") int productSeq);
     int updateLikeStatus(Map<String, Object> params);
     int insertLikeStatus(LikeDTO dto);
     int deleteProduct(int id);
+    int deleteCart(@Param("userId") int userId, @Param("productSeq") int productSeq);
 }

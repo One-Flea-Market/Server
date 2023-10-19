@@ -13,9 +13,9 @@
         VALUES
             (
              0,
-             #{strTitle},
-             #{strDate},
-             #{strContent},
+             #{title},
+             #{date},
+             #{body},
              #{userId}
              )
     </insert>
@@ -27,17 +27,35 @@
             FREE_BOARD
     </select>
 
+    <select id="getBoardCountBySearch" parameterType="Map" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            FREE_BOARD
+        WHERE 1 = 1
+          AND BOARD_TITLE LIKE UPPER(#{search})
+    </select>
+
     <select id="getBoardById" parameterType="int" resultType="com.server.model.BoardDTO">
         SELECT
-            BOARD_SEQ AS boardSeq,
-            BOARD_TITLE AS strTitle,
-            BOARD_DATE AS strDate,
-            BOARD_CONTENT AS strContent,
+            BOARD_SEQ AS id,
+            BOARD_TITLE AS title,
+            BOARD_DATE AS 'date',
+            BOARD_CONTENT AS body,
             USER_ID AS userId
         FROM
             FREE_BOARD
         WHERE 1 = 1
           AND BOARD_SEQ = #{id}
+    </select>
+
+    <select id="getNameByUserId" parameterType="int" resultType="String">
+        SELECT
+            USER_NAME AS username
+        FROM
+            USER
+        WHERE 1 = 1
+          AND USER_ID = #{id}
     </select>
 
     <select id="getUserIdByBoardSeq" parameterType="int" resultType="int">
@@ -46,33 +64,33 @@
         FROM
             FREE_BOARD
         WHERE 1 = 1
-          AND BOARD_SEQ = #{boardSeq}
+          AND BOARD_SEQ = #{id}
     </select>
 
     <select id="getBoard" parameterType="int" resultType="com.server.model.BoardDTO">
         SELECT
-            BOARD_SEQ AS boardSeq,
-            BOARD_TITLE AS strTitle,
-            BOARD_DATE AS strDate,
+            BOARD_SEQ AS id,
+            BOARD_TITLE AS title,
+            BOARD_DATE AS 'date',
             USER_ID AS userId
         FROM
             FREE_BOARD
         ORDER BY BOARD_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 10
     </select>
 
     <select id="getBoardBySearch" parameterType="Map" resultType="com.server.model.BoardDTO">
         <![CDATA[
         SELECT
-            BOARD_SEQ AS boardSeq,
-            BOARD_TITLE AS strTitle,
-            BOARD_DATE AS strDate,
+            BOARD_SEQ AS id,
+            BOARD_TITLE AS title,
+            BOARD_DATE AS 'date',
             USER_ID AS userId
         FROM
             FREE_BOARD
         WHERE BOARD_TITLE LIKE UPPER(#{search})
         ORDER BY BOARD_SEQ ASC
-            LIMIT #{offset}, #{pageSize}
+            LIMIT #{offset}, 10
         ]]>
     </select>
     
@@ -80,9 +98,9 @@
         <![CDATA[
         UPDATE FREE_BOARD
         SET
-            BOARD_TITLE = #{strTitle},
-            BOARD_DATE = #{strDate},
-            BOARD_CONTENT = #{strContent}
+            BOARD_TITLE = #{title},
+            BOARD_DATE = #{date},
+            BOARD_CONTENT = #{body}
         WHERE
             BOARD_SEQ = #{id}
         ]]>

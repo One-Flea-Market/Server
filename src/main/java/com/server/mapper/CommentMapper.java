@@ -18,6 +18,6 @@ public interface CommentMapper {
     List<ProductCommentDTO> getProductComment(int productSeq);
     int modifyProductComment(Map<String, Object> map);
     int deleteProductComment(int id, int commentId);
-
-    int getUserIdByCommentSeq(int id);
+    Integer getUserIdByPCommentSeq(int id);
+    Integer getUserIdByBCommentSeq(int id);
 }

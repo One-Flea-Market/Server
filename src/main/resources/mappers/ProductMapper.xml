@@ -178,6 +178,11 @@
           AND PRODUCT_SEQ = #{productSeq}
     </select>
 
+    <delete id="deleteCart" parameterType="Map">
+        DELETE FROM LIKESTATUS
+        WHERE 1 = 1 AND USER_ID = #{userId} AND PRODUCT_SEQ = #{productSeq}
+    </delete>
+
     <select id="getTransaction" parameterType="int" resultType="com.server.model.ProductDTO">
         SELECT
             PRODUCT_SEQ AS 'id',
