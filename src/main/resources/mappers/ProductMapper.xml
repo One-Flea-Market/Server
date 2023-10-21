@@ -135,7 +135,7 @@
           AND PRODUCT_SEQ = #{id}
     </select>
 
-    <update id="modifyProduct" parameterType="Map">
+    <update id="modifyProduct" parameterType="com.server.model.ProductDTO">
         <![CDATA[
         UPDATE PRODUCT
         SET
@@ -143,16 +143,23 @@
             PRODUCT_STATUS = #{status},
             PRODUCT_CONTENT = #{body},
             PRODUCT_DATE = #{date},
-            PRODUCT_PRICE = #{price},
-            PRODUCT_LINK = #{list}
+            PRODUCT_PRICE = #{price}
         WHERE 1 = 1
           AND PRODUCT_SEQ = #{id}
         ]]>
     </update>
 
+    <update id="modifyImage" parameterType="Map">
+        UPDATE PRODUCT
+        SET
+            PRODUCT_LINK = #{list}
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{id}
+    </update>
+
     <insert id="insertLikeStatus" parameterType="com.server.model.LikeDTO">
         INSERT INTO LIKESTATUS (USER_ID, PRODUCT_SEQ, ONLIKE)
-        VALUES (#{userId}, #{id}, #{onlike})
+        VALUES (#{userId}, #{productSeq}, #{onlike})
     </insert>
 
     <!-- 사용자가 상품을 찜한 상태 업데이트 -->
@@ -253,4 +260,13 @@
         WHERE PRODUCT_SEQ = #{id}
         ]]>
     </delete>
+    
+    <select id="getImageUrl" parameterType="int">
+        SELECT
+            PRODUCT_LINK
+        FROM
+            PRODUCT
+        WHERE 1 = 1
+          AND PRODUCT_SEQ = #{id}
+    </select>
 </mapper>

@@ -21,7 +21,8 @@ public interface ProductMapper {
     List<ProductDTO> getAllProduct();
     List<ProductDTO> getProductById(int id);
     int getUserIdByProductSeq(int id);
-    int modifyProduct(Map<String, Object> map);
+    int modifyProduct(ProductDTO dto);
+    int modifyImage(Map<String, Object> map);
     List<ProductDTO> getProductBySearch(@Param("search") String search, @Param("offset") int offset);
     List<ProductDTO> getTransactionBySearch(@Param("search") String search, @Param("offset") int offset);
     List<ProductDTO> getRentalBySearch(@Param("search") String search, @Param("offset") int offset);
@@ -33,4 +34,5 @@ public interface ProductMapper {
     int insertLikeStatus(LikeDTO dto);
     int deleteProduct(int id);
     int deleteCart(@Param("userId") int userId, @Param("productSeq") int productSeq);
+    String getImageUrl(int id);
 }

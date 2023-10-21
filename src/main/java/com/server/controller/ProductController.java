@@ -207,8 +207,7 @@ public class ProductController {
 
     /* 상품 수정 */
     @PutMapping("/{id}/modify")
-    public ResponseEntity<?> modifyBoard(@PathVariable int id, @RequestBody Map<String, Object> map,
-                                                       ProductDTO dto, HttpSession session) {
+    public ResponseEntity<?> modifyProduct(@PathVariable int id, ProductRequestDTO requestDTO, HttpSession session) {
         log.info("{}", id);
         Map<String, Object> response = new HashMap<>();
 
@@ -221,7 +220,37 @@ public class ProductController {
         /* 상품 조회 서비스 호출 */
         UserDTO reqDto = (UserDTO) session.getAttribute("dto");
         log.info("session user : {}", session.getAttribute("dto"));
+
+        ProductDTO dto = new ProductDTO();
+
+        dto.setId(id);
+        dto.setTitle(requestDTO.getTitle());
+        dto.setStatus(requestDTO.getStatus());
+        dto.setBody(requestDTO.getBody());
+        dto.setDate(requestDTO.getDate());
+        dto.setPrice(requestDTO.getPrice());
         dto.setUserId(reqDto.getId());
+
+        List<MultipartFile> images = requestDTO.getImageFiles();
+
+        log.info("imageLinks.size : {}", images.size());
+        // 최대 12개까지만 이미지를 저장하도록 제한
+        int maxImages = 12;
+        if (images.size() > maxImages) {
+            response.put("result", false);
+            response.put("message", "이미지는 최대 12개 까지 첨부할 수 있습니다.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        productService.updateProductImages(id, images);
+
+        /* List<String> imageLinks = amazonS3Service.uploadFiles(requestDTO.getImageFiles());  // 이미지 링크
+
+        String linksAsString = String.join(",", imageLinks); // 이미지 링크를 문자열로 변환
+        dto.setList(linksAsString); // 문자열로 변환한 이미지 링크를 DTO에 설정
+
+        log.info("imageLinks : {}", imageLinks); */
+        log.info("dto : {}", dto);
 
         // 상품 안의 userId 조회
         int userId = productService.getUserIdByProductSeq(id);
@@ -230,7 +259,7 @@ public class ProductController {
         log.info("상품 등록한 유저 Id : {}", userId);
 
         if (userId == reqDto.getId()) {
-            int flag = productService.modifyProduct(map);
+            int flag = productService.modifyProduct(dto);
 
             if (flag == 0) {
                 response.put("result", true);

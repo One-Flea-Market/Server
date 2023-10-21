@@ -8,10 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,6 +22,8 @@ import java.util.Map;
 public class ProductService {
 
     private final ProductMapper productMapper;
+
+    private final AmazonS3Service amazonS3Service;
 
     public int insertProduct(ProductDTO dto) {
         log.info("dto : {}", dto);
@@ -139,10 +144,10 @@ public class ProductService {
     }
 
     /* 상품 수정 */
-    public int modifyProduct(Map<String, Object> map) {
+    public int modifyProduct(ProductDTO dto) {
 
         int flag = 1;
-        int result = productMapper.modifyProduct(map);
+        int result = productMapper.modifyProduct(dto);
 
         if(result >= 1) {
             flag = 0;
@@ -204,6 +209,55 @@ public class ProductService {
     public int deleteProduct(int id) {
         int flag = 1;
         int result = productMapper.deleteProduct(id);
+
+        if(result >= 1) {
+            flag = 0;
+        } else {
+            flag = 1;
+        }
+        return flag;
+    }
+
+    public void updateProductImages(int productId, List<MultipartFile> newImages) {
+        // 기존 상품 이미지 URL 가져오기 (예시로 getProductImageUrlsFromDatabase 메서드 사용)
+        List<String> existingImageUrls = getProductImageUrlsFromDatabase(productId);
+
+        // 새로운 이미지 URL 가져오기
+        List<String> newImageUrls = amazonS3Service.uploadFiles(newImages);
+
+        // 기존 이미지 중에서 새로운 이미지와 일치하지 않는 것들을 삭제
+        List<String> imagesToDelete = existingImageUrls.stream()
+                .filter(url -> !newImageUrls.contains(url))
+                .collect(Collectors.toList());
+
+        // S3에서 이미지 삭제
+        amazonS3Service.deleteFiles(imagesToDelete);
+
+        // 새로운 이미지 URL을 상품에 업데이트
+        saveNewImageUrlsToDatabase(productId, newImageUrls);
+    }
+
+    // 기존 상품 이미지 URL을 데이터베이스에서 가져오는 메서드 (실제 데이터베이스 조회 로직을 추가해주세요)
+    public List<String> getProductImageUrlsFromDatabase(int productId) {
+        // 데이터베이스에서 productId에 해당하는 이미지 URL 조회 로직을 구현
+        // 예시로 더미 데이터를 반환합니다.
+        String imageUrlString = productMapper.getImageUrl(productId);
+        log.info("Arrays.asList : {}", Arrays.asList(imageUrlString.split(",")));
+        return Arrays.asList(imageUrlString.split(","));
+    }
+
+    // 새로운 이미지 URL을 상품에 업데이트하는 메서드 (실제 데이터베이스 업데이트 로직을 추가해주세요)
+    public int saveNewImageUrlsToDatabase(int productId, List<String> newImageUrls) {
+        // 데이터베이스에 productId에 해당하는 상품의 이미지 URL을 업데이트하는 로직을 구현
+        // 예시로 더미 데이터를 업데이트합니다.
+        String imageUrlString = String.join(",", newImageUrls);
+        log.info("Updating product images in the database: ProductId={}, NewImageUrls={}", productId, imageUrlString);
+        // 여기에 실제 데이터베이스 업데이트 로직을 추가하세요.
+        Map<String, Object> map = new HashMap<>();
+        map.put("list", imageUrlString);
+        map.put("id", productId);
+        int result = productMapper.modifyImage(map);
+        int flag = 1;
 
         if(result >= 1) {
             flag = 0;

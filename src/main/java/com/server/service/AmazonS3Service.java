@@ -1,10 +1,7 @@
 package com.server.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +44,31 @@ public class AmazonS3Service {
         }
 
         return fileUrls;
+    }
+
+    public void deleteFiles(List<String> fileUrls) {
+        for (String fileUrl : fileUrls) {
+            // S3에서 파일 삭제
+            try {
+                String key = extractKeyFromUrl(fileUrl); // 파일 URL에서 S3 키 추출
+                amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
+                log.info("File deleted successfully from S3: {}", fileUrl);
+            } catch (Exception e) {
+                log.error("Failed to delete file from S3: {}", fileUrl, e);
+                // 실패한 경우 예외 처리 또는 로깅을 수행할 수 있습니다.
+            }
+        }
+    }
+
+    private String extractKeyFromUrl(String fileUrl) {
+        // 주어진 URL에서 마지막 슬래시('/') 이후의 문자열을 추출하여 반환합니다.
+        int lastSlashIndex = fileUrl.lastIndexOf('/');
+        if (lastSlashIndex != -1 && lastSlashIndex + 1 < fileUrl.length()) {
+            return fileUrl.substring(lastSlashIndex + 1);
+        } else {
+            // 유효한 파일 키를 추출할 수 없는 경우 예외 처리 또는 기본값을 반환할 수 있습니다.
+            throw new IllegalArgumentException("Invalid file URL: " + fileUrl);
+        }
     }
 
     private String createFileName(String fileName) { // 먼저 파일 업로드 시, 파일명을 난수화하기 위해 random으로 돌립니다.
