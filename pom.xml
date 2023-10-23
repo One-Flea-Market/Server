@@ -114,15 +114,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.server.ServerApplication</mainClass>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.project-lombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.server.ServerApplication</mainClass> <!-- 여기에 실제 메인 클래스의 패키지와 클래스 이름을 지정하세요 -->
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
