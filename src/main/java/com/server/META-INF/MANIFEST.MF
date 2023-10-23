@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: ServerApplication.java
+Class-Path: com.server.ServerApplication
+
