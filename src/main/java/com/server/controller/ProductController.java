@@ -31,10 +31,9 @@ public class ProductController {
 
     /* 상품 메인 */
     @GetMapping("")
-    public ResponseEntity<?> productView() {
+    public ResponseEntity<?> productView(@RequestParam(defaultValue = "1") int page,
+                                         @RequestParam(defaultValue = "12") int pageSize) {
 
-        int page = 1;
-        int pageSize = 12;
         int count = productService.getProductCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -80,6 +79,7 @@ public class ProductController {
             }
         }
         log.info("productList : {}", productList);
+        log.info("itemCount : {}", itemCount);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);

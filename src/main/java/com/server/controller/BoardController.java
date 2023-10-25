@@ -32,13 +32,9 @@ public class BoardController {
         객체안 board 원소의 배열의 길이는 몇개씩 보내도 상관없음(가능하면 10개 정도로 잘라서 보내기)
         next 는 앞서보여준 10개를 제외하고 보여줄 공지가 더있으면 true 없으면 false */
     @GetMapping("")
-    public ResponseEntity<?> boardView() {
-        MessageResBoard messageResBoard = new MessageResBoard();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+    public ResponseEntity<?> boardView(@RequestParam(defaultValue = "1") int page,
+                                       @RequestParam(defaultValue = "10") int pageSize) {
 
-        int page = 1;
-        int pageSize = 10;
         int count = boardService.getBoardCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -162,9 +158,9 @@ public class BoardController {
     /*  검색어로 게시글 조회
         */
     @GetMapping("/search/{search}")
-    public ResponseEntity<?> getBoardBySearch(@PathVariable String search) {
-        int page = 1;
-        int pageSize = 10;
+    public ResponseEntity<?> getBoardBySearch(@PathVariable String search,
+                                              @RequestParam(defaultValue = "1") int page,
+                                              @RequestParam(defaultValue = "10") int pageSize) {
         int count = boardService.getBoardCountBySearch(search);
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 

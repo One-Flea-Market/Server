@@ -46,9 +46,8 @@ public class HomeController {
     /* 메인페이지 상품 리스트 */
     /* 객체안 list원소의 배열의 길이는 12 즉 12개씩 보내야함 next는 12를 제외하고 보여줄 상품이 더있으면 true 없으면 false */
     @GetMapping("/home/product")
-    public ResponseEntity<?> productView() {
-        int page = 1;
-        int pageSize = 12;
+    public ResponseEntity<?> productView(@RequestParam(defaultValue = "1") int page,
+                                         @RequestParam(defaultValue = "12") int pageSize) {
         int count = productService.getProductCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -136,10 +135,9 @@ public class HomeController {
     /* 객체안 notice 원소의 배열의 길이는 몇개씩 보내도 상관없음(가능하면 10개 정도로 잘라서 보내기)
         next 는 앞서보여준 10개를 제외하고 보여줄 공지가 더있으면 true 없으면 false */
     @GetMapping("/notice")
-    public ResponseEntity<?> noticeView() {
+    public ResponseEntity<?> noticeView(@RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "10") int pageSize) {
 
-        int page = 1;
-        int pageSize = 10;
         int count = homeService.getNoticeCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -210,10 +208,8 @@ public class HomeController {
     }
 
     @GetMapping("/transaction")
-    public ResponseEntity<?> transactionView() {
-
-        int page = 1;
-        int pageSize = 12;
+    public ResponseEntity<?> transactionView(@RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "12") int pageSize) {
         int count = productService.getTransactionCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -269,9 +265,9 @@ public class HomeController {
     }
 
     @GetMapping("/transaction/search/{search}")
-    public ResponseEntity<?> getTransactionBySearch(@PathVariable String search) {
-        int page = 1;
-        int pageSize = 12;
+    public ResponseEntity<?> getTransactionBySearch(@PathVariable String search,
+                                                    @RequestParam(defaultValue = "1") int page,
+                                                    @RequestParam(defaultValue = "12") int pageSize) {
         int count = productService.getTransactionCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -327,9 +323,8 @@ public class HomeController {
     }
 
     @GetMapping("/rental")
-    public ResponseEntity<?> rentalView() {
-        int page = 1;
-        int pageSize = 12;
+    public ResponseEntity<?> rentalView(@RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "12") int pageSize) {
         int count = productService.getRentalCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
@@ -385,9 +380,9 @@ public class HomeController {
     }
 
     @GetMapping("/rental/search/{search}")
-    public ResponseEntity<?> getRentalBySearch(@PathVariable String search) {
-        int page = 1;
-        int pageSize = 12;
+    public ResponseEntity<?> getRentalBySearch(@PathVariable String search,
+                                               @RequestParam(defaultValue = "1") int page,
+                                               @RequestParam(defaultValue = "12") int pageSize) {
         int count = productService.getRentalCount();
         log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
 
