@@ -2,8 +2,6 @@ package com.server.controller;
 
 import com.server.mapper.ProductMapper;
 import com.server.model.*;
-import com.server.response.MessageResBoard;
-import com.server.response.MessageResProduct;
 import com.server.service.AmazonS3Service;
 import com.server.service.CommentService;
 import com.server.service.ProductService;
@@ -11,20 +9,18 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "localhost:3000"})
 @RequestMapping("/items")
 public class ProductController {
     private final ProductService productService;

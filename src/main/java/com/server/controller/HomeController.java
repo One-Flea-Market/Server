@@ -4,28 +4,23 @@ package com.server.controller;
 import com.server.model.InquiryDTO;
 import com.server.model.ProductDTO;
 import com.server.model.UserDTO;
-import com.server.response.MessageRes;
-import com.server.response.MessageResNotice;
 import com.server.model.NoticeDTO;
-import com.server.response.MessageResProduct;
 import com.server.service.HomeService;
 import com.server.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "localhost:3000"})
 public class HomeController {
 
     private final HomeService homeService;

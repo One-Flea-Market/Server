@@ -1,29 +1,24 @@
 package com.server.controller;
 
 import com.server.model.ProductDTO;
-import com.server.response.MessageRes;
 import com.server.model.UserDTO;
-import com.server.response.MessageResProduct;
 import com.server.service.ProductService;
 import com.server.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "localhost:3000"})
 public class UserController {
 
     private final UserService userService;

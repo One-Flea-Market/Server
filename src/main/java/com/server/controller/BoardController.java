@@ -1,6 +1,5 @@
 package com.server.controller;
 
-import com.server.mapper.BoardMapper;
 import com.server.model.*;
 import com.server.response.MessageResBoard;
 import com.server.service.BoardService;
@@ -21,6 +20,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "localhost:3000"})
 @RequestMapping("/board")
 public class BoardController {
 
