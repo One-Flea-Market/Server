@@ -48,15 +48,15 @@
             USER_EMAIL
         FROM USER
         WHERE 1 = 1
-          AND USER_EMAIL = #{email}
+          AND LOWER(USER_EMAIL) = LOWER(#{email})
     </select>
 
     <select id="nameCheck" parameterType="com.server.model.UserDTO" resultType="String">
         SELECT
-            USER_NAME
+            USER_NAME AS username
         FROM USER
         WHERE 1 = 1
-          AND USER_NAME = #{username}
+          AND LOWER(USER_NAME) = LOWER(#{username})
     </select>
 
     <select id="getMyProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">

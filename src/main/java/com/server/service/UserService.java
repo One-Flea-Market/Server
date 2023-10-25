@@ -72,8 +72,8 @@ public class UserService {
     }
 
     /* 닉네임 중복 체크 */
-    public String nameCheck(String name) {
-        String result = userMapper.nameCheck(name);
+    public String nameCheck(String username) {
+        String result = userMapper.nameCheck(username);
         log.info("result 로그 (userService) {}", result);
         return result;
     }

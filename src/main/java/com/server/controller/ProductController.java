@@ -48,11 +48,11 @@ public class ProductController {
         int itemCount = 0;
 
         for (ProductDTO listDto : productList) {
-            Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
-            productMap.put("id", listDto.getId());                  // 상품 고유 id 설정
-            productMap.put("title", listDto.getTitle());        // 상품 이름 설정
-            productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
-            productMap.put("price", listDto.getPrice());        // 상품 가격 설정
+            Map<String, Object> productMap = new LinkedHashMap<>();     // 상품 정보들을 저장해 출력할 Map 선언
+            productMap.put("id", listDto.getId());                      // 상품 고유 id 설정
+            productMap.put("title", listDto.getTitle());                // 상품 이름 설정
+            productMap.put("status", listDto.getStatus());              // 상품 카테고리 설정
+            productMap.put("price", listDto.getPrice());                // 상품 가격 설정
 
             String linkAsString = listDto.getList();
             List<String> imageLinks = Arrays.asList(linkAsString.split(","));

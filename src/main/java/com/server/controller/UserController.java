@@ -86,21 +86,21 @@ public class UserController {
 
     /* 이메일 인증 및 중복 체크 */
     @PostMapping("/sign-in/email")
-    public ResponseEntity<?> emailCheck(@RequestParam String email) {
+    public ResponseEntity<?> emailCheck(@RequestBody UserDTO requestDto) {
 
         Map<String, Object> response = new HashMap<>();
 
-        log.info("이메일 확인 {}", email);
-        String result = userService.emailCheck(email);
+        log.info("이메일 확인 {}", requestDto.getEmail());
+        String result = userService.emailCheck(requestDto.getEmail());
         log.info("이메일 로그 확인 {}", result);
 
-        if (Objects.equals(result, email)) {
+        if (Objects.equals(result, requestDto.getEmail())) {
             response.put("message", "이미 등록되어 있는 이메일 입니다.");
             response.put("result", false);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
-            String systemAuthNumber = userService.mailSender(email);
+            String systemAuthNumber = userService.mailSender(requestDto.getEmail());
             log.info("인증 번호 : {}", systemAuthNumber);
 
             response.put("result", true);
@@ -112,14 +112,15 @@ public class UserController {
 
     /* 닉네임 중복 체크 */
     @PostMapping("/sign-in/username")
-    public ResponseEntity<?> nameCheck(@RequestParam String name) {
+    public ResponseEntity<?> nameCheck(@RequestBody UserDTO requestDto) {
         Map<String, Object> response = new HashMap<>();
 
-        log.info("닉네임 확인 {}", name);
-        String result = userService.nameCheck(name);
-        log.info("닉네임 로그 확인 {}", result);
+        log.info("request username : {}", requestDto);
 
-        if (Objects.equals(result, name)) {
+        String result = userService.nameCheck(requestDto.getUsername());
+        log.info("result {}", result);
+
+        if (Objects.equals(result, requestDto.getUsername())) {
             response.put("message", "이미 등록되어 있는 닉네임 입니다.");
             response.put("result", false);
 
