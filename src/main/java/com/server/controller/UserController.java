@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "localhost:3000"})
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "http://localhost:3000"})
 public class UserController {
 
     private final UserService userService;
