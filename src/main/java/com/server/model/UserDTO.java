@@ -13,4 +13,5 @@ public class UserDTO {
     private String passWord;
     private String role;
     private String phone_number;
+    private String date;
 }

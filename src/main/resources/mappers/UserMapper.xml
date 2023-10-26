@@ -9,6 +9,7 @@
             USER_EMAIL AS email,
             USER_ROLE AS role,
             USER_PHONE AS phone_number
+            USER_DATE AS 'date'
         FROM USER
         WHERE 1 = 1
           AND USER_EMAIL = #{email}
@@ -30,7 +31,8 @@
              USER_EMAIL,
              USER_PW,
              USER_ROLE,
-             USER_PHONE
+             USER_PHONE,
+             USER_DATE
              )
         VALUES
             (
@@ -39,7 +41,8 @@
              #{email},
              #{passWord},
              #{role},
-             #{phone_number}
+             #{phone_number},
+             #{date}
              )
     </insert>
 

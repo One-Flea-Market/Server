@@ -44,6 +44,7 @@ public class UserController {
             cookie.setHttpOnly(true);
             cookie.setPath("/"); // 쿠키 경로 설정
             response.addCookie(cookie);
+            response.setHeader("Access-Control-Allow-Credentials", "true");
 
             responseBody.put("result", true);
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
