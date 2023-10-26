@@ -27,6 +27,7 @@ public class UserController {
     private final ProductService productService;
 
     /* 로그인 */
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpSession session, HttpServletResponse response) {
 
