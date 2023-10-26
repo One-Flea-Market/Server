@@ -4,6 +4,8 @@ import com.server.model.ProductDTO;
 import com.server.model.UserDTO;
 import com.server.service.ProductService;
 import com.server.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,21 +28,29 @@ public class UserController {
 
     /* 로그인 */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpSession session, HttpServletResponse response) {
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> responseBody = new HashMap<>();
 
         UserDTO rspDto = userService.getOneUser(dto);
         if (rspDto != null) {
-            /* session 생성 처리 필요 */
+            /* 세션 생성 및 유효시간 설정 */
             session.setAttribute("dto", rspDto);
-            session.setMaxInactiveInterval(1800);
-            response.put("result", true);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            session.setMaxInactiveInterval(1800); // 1800초 (30분)
+
+            /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송 */
+            Cookie cookie = new Cookie("JSESSIONID", session.getId());
+            cookie.setMaxAge(1800); // 1800초 (30분)
+            cookie.setHttpOnly(true);
+            cookie.setPath("/"); // 쿠키 경로 설정
+            response.addCookie(cookie);
+
+            responseBody.put("result", true);
+            return new ResponseEntity<>(responseBody, HttpStatus.OK);
         }
-        response.put("result", false);
-        response.put("message", "이메일 혹은 비밀번호가 틀립니다.");
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        responseBody.put("result", false);
+        responseBody.put("message", "이메일 혹은 비밀번호가 틀립니다.");
+        return new ResponseEntity<>(responseBody, HttpStatus.NOT_FOUND);
     }
 
     /* 회원가입 */
