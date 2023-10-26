@@ -8,7 +8,7 @@
             USER_NAME AS username,
             USER_EMAIL AS email,
             USER_ROLE AS role,
-            USER_PHONE AS phone_number
+            USER_PHONE AS phone_number,
             USER_DATE AS 'date'
         FROM USER
         WHERE 1 = 1
