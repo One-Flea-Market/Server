@@ -1,20 +1,16 @@
 package com.server.controller;
 
 import com.server.model.*;
-import com.server.response.MessageResBoard;
 import com.server.service.BoardService;
 import com.server.service.CommentService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
@@ -25,7 +21,6 @@ import java.util.*;
 public class BoardController {
 
     private final BoardService boardService;
-    private final SqlSession sqlSession;
     private final CommentService commentService;
 
     /*  자유 게시판 조회

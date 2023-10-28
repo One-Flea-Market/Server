@@ -3,7 +3,6 @@ package com.server.service;
 import com.server.mapper.HomeMapper;
 import com.server.model.InquiryDTO;
 import com.server.model.NoticeDTO;
-import com.server.repository.NoticeDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
