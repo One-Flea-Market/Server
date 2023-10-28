@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,6 @@ public class UserController {
             /* 세션 생성 및 유효시간 설정 */
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
-
 
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송 */
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
