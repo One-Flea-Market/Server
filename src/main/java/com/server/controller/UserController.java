@@ -51,7 +51,7 @@ public class UserController {
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
 
-            addCookie(response, "refreshToken", session.getId());
+            addCookie(response, "refresh_Token", session.getId());
 
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
