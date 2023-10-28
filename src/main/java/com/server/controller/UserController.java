@@ -46,7 +46,7 @@ public class UserController {
             cookie.setHttpOnly(true);
             cookie.setPath("/"); // 쿠키 경로 설정
             response.addCookie(cookie);
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+            response.setHeader("Access-Control-Allow-Origin", "https://localhost:3001");
             response.setHeader("Access-Control-Allow-Credentials", "true");
 
             responseBody.put("result", true);
