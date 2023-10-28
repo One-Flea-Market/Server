@@ -29,15 +29,15 @@ public class UserController {
     /* 로그인 */
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpSession session, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpServletRequest request, HttpServletResponse response) {
 
         Map<String, Object> responseBody = new HashMap<>();
 
         UserDTO rspDto = userService.getOneUser(dto);
         if (rspDto != null) {
             /* 세션 생성 및 유효시간 설정 */
+            HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
-            session.setMaxInactiveInterval(1800); // 1800초 (30분)
 
 
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송 */
