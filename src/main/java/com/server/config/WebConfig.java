@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://localhost:3001", "https://client-p34zpc52f-capstone-team-market.vercel.app/")
+                .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowCredentials(true)
                 .maxAge(3600);
