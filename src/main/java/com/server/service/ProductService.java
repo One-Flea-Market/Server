@@ -57,8 +57,7 @@ public class ProductService {
         return productMapper.getAllProduct();
     }
 
-    public List<ProductDTO> getProduct(int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getProduct(int offset) {
         log.info("offset : {}", offset);
         return productMapper.getProduct(offset);
     }

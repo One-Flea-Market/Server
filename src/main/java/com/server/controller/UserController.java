@@ -100,15 +100,38 @@ public class UserController {
 
         Map<String, Object> response = new HashMap<>();
 
-        request.getSession(false);
-        log.info("세션 조회 {}",request.getSession(false));
-        if(request.getSession(false) == null) {
-            response.put("login", false);
-        } else {
-            response.put("login", true);
+        // 쿠키
+        Cookie[] cookies = request.getCookies();
+
+        if(cookies != null) {
+            for (Cookie cookie : cookies) {
+                if(cookie.getName().equals("refresh_Token")) {
+                    String sessionId = cookie.getValue();
+                    response.put("login", true);
+                    log.info("Session Id : {}", sessionId);
+                }
+            }
         }
+
+        response.put("login", false);
+        log.info("Session Id is Not Found.");
+
+        // 세션
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("dto") == null) {
+            response.put("login", false);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+
+        UserDTO userDTO = (UserDTO) session.getAttribute("dto");
+
+        // 세션에서 필요한 사용자 정보를 가져와서 응답으로 보내기
+        response.put("login", true);
+        response.put("userId", userDTO.getId()); // 사용자 ID나 다른 필요한 정보를 응답으로 추가할 수 있음
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     /* 이메일 인증 및 중복 체크 */
     @PostMapping("/sign-in/email")

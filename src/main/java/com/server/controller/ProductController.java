@@ -5,6 +5,8 @@ import com.server.model.*;
 import com.server.service.AmazonS3Service;
 import com.server.service.CommentService;
 import com.server.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +33,23 @@ public class ProductController {
 
     /* 상품 메인 */
     @GetMapping("")
-    public ResponseEntity<?> productView(@RequestParam(defaultValue = "1") int page,
-                                         @RequestParam(defaultValue = "12") int pageSize) {
+    public ResponseEntity<?> productView(HttpServletRequest request) {
+
+
+
+        HttpSession session = request.getSession(true);
+        Integer page = (Integer) session.getAttribute("page");
+
+        if(page == null) {
+            page = 1;
+        }
+        int offset = (page - 1) * 12; // offset 계산
 
         int count = productService.getProductCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        log.info("상품 개수 ( count ) : {}", count);
 
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getProduct(page);
+        List<ProductDTO> productList = productService.getProduct(offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -72,9 +83,10 @@ public class ProductController {
             itemCount++;
 
             // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
-            if (itemCount >= pageSize) {
+            if (itemCount >= 12) {
                 page++;
-                log.info("{}", page);
+                session.setAttribute("page", page);
+                log.info("page : {}", page);
                 break;
             }
         }
@@ -83,7 +95,7 @@ public class ProductController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
-        response.put("next", itemCount >= pageSize);
+        response.put("next", itemCount >= 12);
 
         log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);

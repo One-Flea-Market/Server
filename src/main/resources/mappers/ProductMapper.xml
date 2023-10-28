@@ -70,16 +70,20 @@
     </select>
 
     <select id="getProduct" parameterType="int" resultType="com.server.model.ProductDTO">
+        <![CDATA[
         SELECT
             PRODUCT_SEQ AS 'id',
-            PRODUCT_TITLE AS 'title',
-            PRODUCT_STATUS AS 'status',
-            PRODUCT_LINK AS 'list',
-            PRODUCT_PRICE AS 'price'
+                PRODUCT_TITLE AS 'title',
+                PRODUCT_STATUS AS 'status',
+                PRODUCT_LINK AS 'list',
+                PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
+        WHERE
+            PRODUCT_SEQ > #{offset}
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, 12
+            LIMIT 12
+        ]]>
     </select>
 
     <select id="getProductBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
