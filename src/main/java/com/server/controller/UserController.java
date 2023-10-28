@@ -39,6 +39,7 @@ public class UserController {
             session.setAttribute("dto", rspDto);
             session.setMaxInactiveInterval(1800); // 1800초 (30분)
 
+
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송 */
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
             cookie.setMaxAge(1800); // 1800초 (30분)
