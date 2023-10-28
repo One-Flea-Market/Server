@@ -43,6 +43,7 @@ public class UserController {
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
             cookie.setMaxAge(1800); // 1800초 (30분)
             cookie.setHttpOnly(true);
+            cookie.setSecure(true);
             cookie.setPath("/"); // 쿠키 경로 설정
             response.addCookie(cookie);
             response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
