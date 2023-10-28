@@ -27,8 +27,19 @@ public class UserController {
     private final UserService userService;
     private final ProductService productService;
 
-    /* 로그인 */
+    public static void addCookie(HttpServletResponse response, String name, String value) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .path("/")
+                .sameSite("None")
+                .httpOnly(true)
+                .secure(true)
+                .maxAge(1800)
+                .build();
 
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    /* 로그인 */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO dto, HttpServletRequest request, HttpServletResponse response) {
 
@@ -40,13 +51,15 @@ public class UserController {
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
 
-            /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송 */
+            addCookie(response, "JSESSIONID", session.getId());
+
+            /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
             cookie.setMaxAge(1800); // 1800초 (30분)
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/"); // 쿠키 경로 설정
-            response.addCookie(cookie);
+            response.addCookie(cookie);*/
 
             responseBody.put("result", true);
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
