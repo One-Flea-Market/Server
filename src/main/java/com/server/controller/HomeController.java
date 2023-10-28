@@ -20,7 +20,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "http://localhost:3000"})
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "https://localhost:3001"})
 public class HomeController {
 
     private final HomeService homeService;

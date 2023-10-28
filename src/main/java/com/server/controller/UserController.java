@@ -21,7 +21,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "http://localhost:3000"})
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "https://localhost:3001"})
 public class UserController {
 
     private final UserService userService;
@@ -51,7 +51,7 @@ public class UserController {
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
 
-            addCookie(response, "JSESSIONID", session.getId());
+            addCookie(response, "refreshToken", session.getId());
 
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송
             Cookie cookie = new Cookie("JSESSIONID", session.getId());

@@ -16,7 +16,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "http://localhost:3000"})
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "https://localhost:3001"})
 @RequestMapping("/board")
 public class BoardController {
 
