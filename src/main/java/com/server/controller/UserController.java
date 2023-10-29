@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -52,15 +53,6 @@ public class UserController {
             session.setAttribute("dto", rspDto);
 
             addCookie(response, "JSESSIONID", session.getId());
-
-            /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송
-            Cookie cookie = new Cookie("JSESSIONID", session.getId());
-            cookie.setMaxAge(1800); // 1800초 (30분)
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/"); // 쿠키 경로 설정
-            response.addCookie(cookie);*/
-
             responseBody.put("result", true);
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
         }
@@ -91,8 +83,9 @@ public class UserController {
         /* session 만료처리 필요 */
         HttpSession session = request.getSession();
         if(session != null) {
-            log.info("세션 {}",session.getAttribute("dto"));
-            session.invalidate();
+            UserDTO user = (UserDTO) session.getAttribute("dto");
+            log.info("세션 : {}", user);
+            session.removeAttribute("dto");
         }
 
         Cookie[] cookies = request.getCookies();
@@ -114,13 +107,19 @@ public class UserController {
     public ResponseEntity<?> sessionCheck(HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
-
         // 쿠키
         Cookie[] cookies = request.getCookies();
 
-        if(cookies != null) {
+        if(cookies == null) {
+            response.put("login", false);
+            log.info("Session Id is Not Found.");
+        } else {
             for (Cookie cookie : cookies) {
                 if(cookie.getName().equals("JSESSIONID")) { // 여기서 쿠키 이름 저거인거 체크하고
+                    HttpSession session = request.getSession();
+                    UserDTO user = (UserDTO) session.getAttribute("dto");
+                    Integer userId = user.getId();
+
                     String sessionId = cookie.getValue();
                     response.put("login", true);
                     log.info("Session Id (JSESSIONID) : {}", sessionId);
@@ -129,10 +128,8 @@ public class UserController {
 
                     response.put("login", false);
                 }*/
+                break;
             }
-        } else {    // 여기는 쿠키 자체가 null 일 때
-            response.put("login", false);
-            log.info("Session Id is Not Found.");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -225,7 +222,7 @@ public class UserController {
     }
 
     @GetMapping("/admin/product")
-    public ResponseEntity<?> myProductView(UserDTO dto, HttpServletRequest request) {
+    public ResponseEntity<?> myProductView(HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 

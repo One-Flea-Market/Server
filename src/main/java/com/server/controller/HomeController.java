@@ -24,15 +24,14 @@ public class HomeController {
 
     private final HomeService homeService;
     private final ProductService productService;
-    private final SqlSession sqlSession;
 
-    /* 메인페이지 Carousel 이미지 */
+    /* 메인페이지 Carousel 이미지
     @GetMapping("/home/picture")
     public ResponseEntity<?> homeCarouselView() {
 
         return new ResponseEntity<>("Carousel 이미지", HttpStatus.OK);
     }
-
+ */
     /* 메인페이지 공지사항 리스트 */
     /* 메인 화면에서 보여지는 공지사항 리스트 (최신순으로 3개만 보내기) */
     @GetMapping("/home/notice")
