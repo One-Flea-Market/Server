@@ -51,7 +51,7 @@ public class UserController {
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
 
-            addCookie(response, "refresh_Token", session.getId());
+            addCookie(response, "JSESSIONID", session.getId());
 
             /* 세션 정보를 쿠키로 설정하여 클라이언트에게 전송
             Cookie cookie = new Cookie("JSESSIONID", session.getId());
@@ -87,10 +87,25 @@ public class UserController {
 
     /* 로그아웃 */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         /* session 만료처리 필요 */
-        log.info("세션 {}",session.getAttribute("dto"));
-        session.invalidate();
+        HttpSession session = request.getSession();
+        if(session != null) {
+            log.info("세션 {}",session.getAttribute("dto"));
+            session.invalidate();
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for(Cookie cookie : cookies) {
+                if(cookie.getName().equals("JSESSIONID")) {
+                    cookie.setMaxAge(0);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
+        }
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
@@ -105,30 +120,18 @@ public class UserController {
 
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if(cookie.getName().equals("refresh_Token")) {
+                if(cookie.getName().equals("JSESSIONID")) {
                     String sessionId = cookie.getValue();
                     response.put("login", true);
-                    log.info("Session Id : {}", sessionId);
+                    log.info("Session Id (refresh_Token) : {}", sessionId);
+                } else {
+                    response.put("login", false);
                 }
             }
-        }
-
-        response.put("login", false);
-        log.info("Session Id is Not Found.");
-
-        // 세션
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("dto") == null) {
+        } else {
             response.put("login", false);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            log.info("Session Id is Not Found.");
         }
-
-        UserDTO userDTO = (UserDTO) session.getAttribute("dto");
-
-        // 세션에서 필요한 사용자 정보를 가져와서 응답으로 보내기
-        response.put("login", true);
-        response.put("userId", userDTO.getId()); // 사용자 ID나 다른 필요한 정보를 응답으로 추가할 수 있음
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -183,74 +186,97 @@ public class UserController {
     }
 
     @GetMapping("/admin")
-    public ResponseEntity<?> mypageView(UserDTO dto, HttpSession session) {
+    public ResponseEntity<?> mypageView(UserDTO dto, HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
-        if(session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
-            log.info("로그인 필요");
-            response.put("login", false);   // login : false 객체 설정
-        } else {
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setEmail(reqDto.getEmail());
+        Cookie[] cookies = request.getCookies();
 
-            log.info("읽어온 email  {}", dto);
-            log.info("읽어온 reqDto  {}", reqDto);
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("JSESSIONID")) {
+                    String sessionId = cookie.getValue();
+                    log.info("Session Id (JSESSIONID) : {}", sessionId);
 
-            if (reqDto != null && Objects.equals(reqDto.getEmail(), dto.getEmail())) {
-                log.info("mypage 호출 성공");
-                UserDTO userDTO = userService.mypage(reqDto);
-                return new ResponseEntity<>(userDTO, HttpStatus.OK);
+                    HttpSession session = request.getSession();
+                    UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+                    log.info("session user : {}", session.getAttribute("dto"));
+                    dto.setEmail(reqDto.getEmail());
+
+                    log.info("읽어온 email  {}", dto);
+                    log.info("읽어온 reqDto  {}", reqDto);
+
+                    if (reqDto != null && Objects.equals(reqDto.getEmail(), dto.getEmail())) {
+                        log.info("mypage 호출 성공");
+                        UserDTO userDTO = userService.mypage(reqDto);
+                        response.put("response", userDTO);
+                        return new ResponseEntity<>(response, HttpStatus.OK);
+                    }
+                }
             }
+        } else {
+            response.put("login", false);
+            log.info("Session Id is Not Found.");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);   // 비로그인 객체 반환
     }
 
     @GetMapping("/admin/product")
-    public ResponseEntity<?> myProductView(UserDTO dto, HttpSession session) {
+    public ResponseEntity<?> myProductView(UserDTO dto, HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
-        if(session.getAttribute("dto") == null) {   // dto 즉 세션이 null일 때
-            log.info("로그인 필요");
-            response.put("login", false);   // login : false 객체 설정
-        } else {
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            int userId = reqDto.getId();
+        Cookie[] cookies = request.getCookies();
 
-            // 서비스에서 상품 목록을 가져옴
-            List<ProductDTO> productList = userService.getMyProduct(userId);
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("JSESSIONID")) {
+                    String sessionId = cookie.getValue();
+                    log.info("Session Id (JSESSIONID) : {}", sessionId);
 
-            // 응답 데이터 구성을 위한 리스트
-            List<Map<String, Object>> responseList = new ArrayList<>();
+                    HttpSession session = request.getSession();
+                    UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+                    log.info("session user : {}", session.getAttribute("dto"));
 
-            for (ProductDTO listDto : productList) {
-                Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
-                productMap.put("id", listDto.getId());                  // 상품 고유 id 설정
-                productMap.put("title", listDto.getTitle());        // 상품 이름 설정
-                productMap.put("status", listDto.getStatus());      // 상품 카테고리 설정
-                productMap.put("price", listDto.getPrice());        // 상품 가격 설정
+                    int userId = reqDto.getId();
 
-                String linkAsString = listDto.getList();
-                List<String> imageLinks = Arrays.asList(linkAsString.split(","));
 
-                Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+                    // 서비스에서 상품 목록을 가져옴
+                    List<ProductDTO> productList = userService.getMyProduct(userId);
 
-                if (!imageLinks.isEmpty()) {      // 대표 이미지 설정
-                    int randomIndex = random.nextInt(imageLinks.size());
+                    // 응답 데이터 구성을 위한 리스트
+                    List<Map<String, Object>> responseList = new ArrayList<>();
 
-                    String representativeImage = imageLinks.get(randomIndex);
-                    productMap.put("image", representativeImage);
+                    for (ProductDTO listDto : productList) {
+                        Map<String, Object> productMap = new LinkedHashMap<>();     // 상품 정보들을 저장해 출력할 Map 선언
+                        productMap.put("id", listDto.getId());                      // 상품 고유 id 설정
+                        productMap.put("title", listDto.getTitle());                // 상품 이름 설정
+                        productMap.put("status", listDto.getStatus());              // 상품 카테고리 설정
+                        productMap.put("price", listDto.getPrice());                // 상품 가격 설정
+
+                        String linkAsString = listDto.getList();
+                        List<String> imageLinks = Arrays.asList(linkAsString.split(","));
+
+                        Random random = new Random();   // 대표 이미지를 랜덤하게 선정
+
+                        if (!imageLinks.isEmpty()) {      // 대표 이미지 설정
+                            int randomIndex = random.nextInt(imageLinks.size());
+
+                            String representativeImage = imageLinks.get(randomIndex);
+                            productMap.put("image", representativeImage);
+                        }
+
+                        // 응답 데이터에 상품 정보 추가
+                        responseList.add(productMap);
+                    }
+                    log.info("productList : {}", productList);
+
+                    response.put("list", responseList);
                 }
-
-                // 응답 데이터에 상품 정보 추가
-                responseList.add(productMap);
             }
-            log.info("productList : {}", productList);
-
-            response.put("list", responseList);
+        } else {
+            response.put("login", false);
+            log.info("Session Id is Not Found.");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
