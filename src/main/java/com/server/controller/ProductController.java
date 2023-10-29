@@ -6,7 +6,6 @@ import com.server.service.CommentService;
 import com.server.service.ProductService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +63,7 @@ public class ProductController {
                 int randomIndex = random.nextInt(imageLinks.size());
 
                 String representativeImage = imageLinks.get(randomIndex);
-                productMap.put("list", representativeImage);
+                productMap.put("image", representativeImage);
             }
 
             // 응답 데이터에 상품 정보 추가
@@ -196,7 +195,7 @@ public class ProductController {
 
                         String linkAsString = listDto.getList();
                         List<String> imageLinks = Arrays.asList(linkAsString.split(","));
-                        productMap.put("list", imageLinks);
+                        productMap.put("image", imageLinks);
 
                         if (userId == reqDto.getId()) {
                             response.put("message", "본인이 등록한 상품입니다.");

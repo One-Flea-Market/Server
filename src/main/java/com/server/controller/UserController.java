@@ -120,15 +120,17 @@ public class UserController {
 
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if(cookie.getName().equals("JSESSIONID")) {
+                if(cookie.getName().equals("JSESSIONID")) { // 여기서 쿠키 이름 저거인거 체크하고
                     String sessionId = cookie.getValue();
                     response.put("login", true);
-                    log.info("Session Id (refresh_Token) : {}", sessionId);
-                } else {
+                    log.info("Session Id (JSESSIONID) : {}", sessionId);
+                }/* else {    // 쿠키가 저게 아니면 false <- 이거 때문에 지금 false 뜨는건데 이거 없애면
+                    // {} 응답이 걍 이렇게 나옴
+
                     response.put("login", false);
-                }
+                }*/
             }
-        } else {
+        } else {    // 여기는 쿠키 자체가 null 일 때
             response.put("login", false);
             log.info("Session Id is Not Found.");
         }
