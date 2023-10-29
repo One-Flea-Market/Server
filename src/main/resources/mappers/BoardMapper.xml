@@ -33,7 +33,7 @@
         FROM
             FREE_BOARD
         WHERE 1 = 1
-          AND BOARD_TITLE LIKE UPPER(#{search})
+          AND REPLACE(LOWER(BOARD_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '')
     </select>
 
     <select id="getBoardById" parameterType="int" resultType="com.server.model.BoardDTO">
@@ -88,7 +88,7 @@
             USER_ID AS userId
         FROM
             FREE_BOARD
-        WHERE BOARD_TITLE LIKE UPPER(#{search})
+        WHERE REPLACE(LOWER(BOARD_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '')
         ORDER BY BOARD_SEQ ASC
             LIMIT #{offset}, 10
         ]]>

@@ -32,8 +32,7 @@ public class HomeService {
     }
 
     /* 공지사항 리스트 서비스 MyBatis */
-    public List<NoticeDTO> getNotice(int page) {
-        int offset = (page - 1) * 12;
+    public List<NoticeDTO> getNotice(int offset) {
         log.info("offset : {}", offset);
         return homeMapper.getNotice(offset);
     }

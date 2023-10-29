@@ -37,15 +37,13 @@ public class BoardService {
     }
 
     /* 게시글 조회 서비스 */
-    public List<BoardDTO> getBoard(int page) {
-        int offset = (page - 1) * 10;
+    public List<BoardDTO> getBoard(int offset) {
         log.info("offset : {}", offset);
         return boardMapper.getBoard(offset);
     }
 
     public Integer getUserIdByBoardSeq(int id) {
         Integer result = boardMapper.getUserIdByBoardSeq(id);
-
         return result != null ? result : 0;
     }
 
@@ -59,9 +57,7 @@ public class BoardService {
     }
 
     /* 게시글 조회 by 검색어 */
-    public List<BoardDTO> getBoardBySearch(String search, int page) {
-
-        int offset = (page - 1) * 10;
+    public List<BoardDTO> getBoardBySearch(String search, int offset) {
         log.info("offset : {}", offset);
         search = '%'+search+'%';
         return boardMapper.getBoardBySearch(search, offset);
@@ -73,7 +69,6 @@ public class BoardService {
     }
 
     public int modifyBoard(Map<String, Object> map) {
-
         int flag = 1;
         int result = boardMapper.modifyBoard(map);
 

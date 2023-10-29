@@ -52,7 +52,9 @@
         WHERE BOARD_SEQ = #{id} AND COMMENT_SEQ = #{commentId}
         ]]>
     </delete>
-<!-- 상품 -->
+
+
+<!-- 상품  -->
     <insert id="writeProductComment" parameterType="com.server.model.ProductCommentDTO">
         INSERT INTO PRODUCT_COMMENT
         (

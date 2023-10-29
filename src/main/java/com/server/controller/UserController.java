@@ -185,6 +185,7 @@ public class UserController {
         }
     }
 
+    /* 마이 페이지 */
     @GetMapping("/admin")
     public ResponseEntity<?> mypageView(UserDTO dto, HttpServletRequest request) {
 
