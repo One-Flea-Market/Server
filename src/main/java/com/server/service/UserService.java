@@ -49,7 +49,7 @@ public class UserService {
 
     public Boolean checkLogin(int userId) {
         Boolean result = userMapper.checkLogin(userId);
-        log.info("result : {}", result);
+        log.info("Check Login Result is {}", result);
         return result != null ? result : false;
     }
 
