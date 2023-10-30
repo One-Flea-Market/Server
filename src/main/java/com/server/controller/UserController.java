@@ -104,7 +104,7 @@ public class UserController {
 
     /* 세션 체크 */
     @GetMapping("/check")
-    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(value = "JSESSIONID") Cookie cookie2) {
+    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(name = "JSESSIONID") String cookie2) {
 
         Map<String, Object> response = new HashMap<>();
         // 쿠키
@@ -119,12 +119,12 @@ public class UserController {
         log.info("cookie2 : {}", cookie2);
 
         if(cookie2 != null){
-            sessionId = cookie2.getValue();
+            sessionId = cookie2;
 
             HttpSession session = request.getSession();
             log.info("session : {} ", session);
             user = (UserDTO) session.getAttribute("dto");   // user 객체에 dto 세션 내의 유저 정보 저장
-            log.info("user", user);
+            log.info("user : {}", user);
             if(user == null) {  // user가 null 일 때, for문 탈출 ( 500 에러 위함 )
             }
             userId = user.getId();  // user 객체에서 USER_ID 가져옴
