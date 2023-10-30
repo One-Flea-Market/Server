@@ -117,31 +117,31 @@ public class UserController {
 
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if(cookie.getName().equals("JSESSIONID")) {
+                if(cookie.getName().equals("JSESSIONID")) {     // JSESSIONID 라는 이름을 가진 쿠키 조회
                     HttpSession session = request.getSession();
-                    user = (UserDTO) session.getAttribute("dto");
+                    user = (UserDTO) session.getAttribute("dto");   // user 객체에 dto 세션 내의 유저 정보 저장
                     if(user == null) {  // user가 null 일 때, for문 탈출 ( 500 에러 위함 )
                         break;
                     }
-                    userId = user.getId();
+                    userId = user.getId();  // user 객체에서 USER_ID 가져옴
 
-                    sessionId = cookie.getValue();
+                    sessionId = cookie.getValue();  // sessionId에 현재 쿠키 값 저장
 
-                    loginCheck = userService.checkLogin(userId);
+                    loginCheck = userService.checkLogin(userId);    // 실제 로그인 체크 (USER_ID를 이용해 레코드가 한개라도 일치하는게 있으면 true)
                 }
                 break;
             }
         }
-        log.info("loginCheck : {}", loginCheck);
+        log.info("loginCheck : {}", loginCheck);    // true or false
 
-        if(sessionId != null) {
-            if(loginCheck == true) {
+        if(sessionId != null) {     // sessionId not null
+            if(loginCheck == true) {    // loginCheck is true
                 log.info("Now Login User Info : {}", user);
-                response.put("login", true);
+                response.put("login", true);    // login : true
                 log.info("Session Id (JSESSIONID) : {}", sessionId);
             }
         } else {
-            response.put("login", false);
+            response.put("login", false);       // login : false
             log.info("Session Id is Not Found (Null).");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
