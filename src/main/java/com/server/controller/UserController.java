@@ -114,26 +114,31 @@ public class UserController {
         Boolean loginCheck = null;
         UserDTO user = new UserDTO();
 
+        log.info("request : {}", request);
+        log.info("cookies : {}", cookies);
 
-    //    if(cookies != null) {
+        if(cookies != null) {
             for (Cookie cookie : cookies) {
+                log.info("cookie : {}", cookie);
                 if(cookie.getName().equals("JSESSIONID")) {     // JSESSIONID 라는 이름을 가진 쿠키 조회
                     HttpSession session = request.getSession();
+                    log.info("session : {} ", session);
                     user = (UserDTO) session.getAttribute("dto");   // user 객체에 dto 세션 내의 유저 정보 저장
+                    log.info("user", user);
                     if(user == null) {  // user가 null 일 때, for문 탈출 ( 500 에러 위함 )
                         break;
                     }
                     userId = user.getId();  // user 객체에서 USER_ID 가져옴
-
+                    log.info("userId : {}", userId);
                     sessionId = cookie.getValue();  // sessionId에 현재 쿠키 값 저장
-
+                    log.info("sessionId : {}", sessionId);
                     loginCheck = userService.checkLogin(userId);    // 실제 로그인 체크 (USER_ID를 이용해 레코드가 한개라도 일치하는게 있으면 true)
-
+                    log.info("loginCheck : {}", loginCheck);
                     break;
                 }
-     //       }
+            }
         }
-        log.info("loginCheck : {}", loginCheck);    // true or false
+        // log.info("loginCheck : {}", loginCheck);    // true or false
 
         if(sessionId != null) {     // sessionId not null
             if(loginCheck == true) {    // loginCheck is true
