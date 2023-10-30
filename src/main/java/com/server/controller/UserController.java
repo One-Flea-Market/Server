@@ -128,8 +128,9 @@ public class UserController {
                     sessionId = cookie.getValue();  // sessionId에 현재 쿠키 값 저장
 
                     loginCheck = userService.checkLogin(userId);    // 실제 로그인 체크 (USER_ID를 이용해 레코드가 한개라도 일치하는게 있으면 true)
+
+                    break;
                 }
-                break;
             }
         }
         log.info("loginCheck : {}", loginCheck);    // true or false
@@ -139,6 +140,7 @@ public class UserController {
                 log.info("Now Login User Info : {}", user);
                 response.put("login", true);    // login : true
                 log.info("Session Id (JSESSIONID) : {}", sessionId);
+                return new ResponseEntity<>(response, HttpStatus.OK);
             }
         } else {
             response.put("login", false);       // login : false
