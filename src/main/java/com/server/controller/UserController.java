@@ -115,7 +115,7 @@ public class UserController {
         UserDTO user = new UserDTO();
 
 
-        if(cookies != null) {
+    //    if(cookies != null) {
             for (Cookie cookie : cookies) {
                 if(cookie.getName().equals("JSESSIONID")) {     // JSESSIONID 라는 이름을 가진 쿠키 조회
                     HttpSession session = request.getSession();
@@ -131,7 +131,7 @@ public class UserController {
 
                     break;
                 }
-            }
+     //       }
         }
         log.info("loginCheck : {}", loginCheck);    // true or false
 
