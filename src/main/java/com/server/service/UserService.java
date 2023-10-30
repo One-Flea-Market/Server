@@ -30,20 +30,27 @@ public class UserService {
     private JavaMailSender mailSender;
 
     /* 로그인 시 유저가 DB에 있는지 검증 */
-    public UserDTO getOneUser (UserDTO dto) {
-        log.info("로그인 시도 후 유저 검증 시작 {} ", dto);
-
-        String encodedPwd = userMapper.selectEncPwd(dto);
-        String rawPwd = dto.getPassWord();
+    public UserDTO LoginUser(UserDTO dto) {
+        log.info("로그인 시도");
+        log.info("유저 검증 시작 (Request Email & PassWord) : {} ", dto);
+        String encodedPwd = userMapper.selectEncPwd(dto);   // Encoded PassWord In DB
+        String rawPwd = dto.getPassWord();                  // Request PassWord
 
         if(passwordEncoder.matches(rawPwd, encodedPwd)) {
-            log.info("로그인 시도 후 유저 검증 시작 {} ", passwordEncoder.matches(rawPwd, encodedPwd));
+            log.info("RawPassWord Matches EncodedPassWord : {} ", passwordEncoder.matches(rawPwd, encodedPwd));
             dto.setPassWord(encodedPwd);
             UserDTO rspDto = userMapper.selectOneUser(dto);
-            log.info("로그인 시도 후 유저 검증 시작 {} ", rspDto);
+            log.info("Login User : {} ", rspDto);
             return rspDto;
         }
+        log.info("Login Failed");
         return null;
+    }
+
+    public Boolean checkLogin(int userId) {
+        Boolean result = userMapper.checkLogin(userId);
+        log.info("result : {}", result);
+        return result != null ? result : false;
     }
 
     /* 회원가입 */
@@ -96,7 +103,7 @@ public class UserService {
 
         mailSender.send(simpleMailMessage);
 
-        return  Integer.toString(authNumber);
+        return Integer.toString(authNumber);
     }
 
     /* 마이페이지 정보 확인 */

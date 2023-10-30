@@ -96,4 +96,13 @@
             PRODUCT
     </select>
 
+    <select id="checkLogin" parameterType="int" resultType="boolean">
+        SELECT
+            COUNT(*) > 0
+        FROM
+            USER
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </select>
+
 </mapper>

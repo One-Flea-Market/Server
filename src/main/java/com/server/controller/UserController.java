@@ -46,7 +46,7 @@ public class UserController {
 
         Map<String, Object> responseBody = new HashMap<>();
 
-        UserDTO rspDto = userService.getOneUser(dto);
+        UserDTO rspDto = userService.LoginUser(dto);
         if (rspDto != null) {
             /* 세션 생성 및 유효시간 설정 */
             HttpSession session = request.getSession();
@@ -110,25 +110,39 @@ public class UserController {
         // 쿠키
         Cookie[] cookies = request.getCookies();
         String sessionId = null;
+        Integer userId;
+        Boolean loginCheck = null;
+        UserDTO user = new UserDTO();
+
 
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if(cookie.getName().equals("JSESSIONID")) { // 여기서 쿠키 이름 저거인거 체크하고
+                if(cookie.getName().equals("JSESSIONID")) {
                     HttpSession session = request.getSession();
-                    UserDTO user = (UserDTO) session.getAttribute("dto");
-                    Integer userId = user.getId();
+                    user = (UserDTO) session.getAttribute("dto");
+                    if(user == null) {  // user가 null 일 때, for문 탈출 ( 500 에러 위함 )
+                        break;
+                    }
+                    userId = user.getId();
 
                     sessionId = cookie.getValue();
+
+                    loginCheck = userService.checkLogin(userId);
                 }
                 break;
             }
         }
+        log.info("loginCheck : {}", loginCheck);
+
         if(sessionId != null) {
-            response.put("login", true);
-            log.info("Session Id (JSESSIONID) : {}", sessionId);
+            if(loginCheck == true) {
+                log.info("Now Login User Info : {}", user);
+                response.put("login", true);
+                log.info("Session Id (JSESSIONID) : {}", sessionId);
+            }
         } else {
             response.put("login", false);
-            log.info("Session Id is Not Found.");
+            log.info("Session Id is Not Found (Null).");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
