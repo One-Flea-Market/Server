@@ -109,27 +109,26 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         // 쿠키
         Cookie[] cookies = request.getCookies();
+        String sessionId = null;
 
-        if(cookies == null) {
-            response.put("login", false);
-            log.info("Session Id is Not Found.");
-        } else {
+        if(cookies != null) {
             for (Cookie cookie : cookies) {
                 if(cookie.getName().equals("JSESSIONID")) { // 여기서 쿠키 이름 저거인거 체크하고
                     HttpSession session = request.getSession();
                     UserDTO user = (UserDTO) session.getAttribute("dto");
                     Integer userId = user.getId();
 
-                    String sessionId = cookie.getValue();
-                    response.put("login", true);
-                    log.info("Session Id (JSESSIONID) : {}", sessionId);
-                }/* else {    // 쿠키가 저게 아니면 false <- 이거 때문에 지금 false 뜨는건데 이거 없애면
-                    // {} 응답이 걍 이렇게 나옴
-
-                    response.put("login", false);
-                }*/
+                    sessionId = cookie.getValue();
+                }
                 break;
             }
+        }
+        if(sessionId != null) {
+            response.put("login", true);
+            log.info("Session Id (JSESSIONID) : {}", sessionId);
+        } else {
+            response.put("login", false);
+            log.info("Session Id is Not Found.");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
