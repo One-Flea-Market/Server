@@ -104,7 +104,9 @@ public class UserController {
 
     /* 세션 체크 */
     @GetMapping("/check")
-    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(value = "JSESSIONID", required = false) Cookie cookie2) {
+    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(value = "JSESSIONID", required = false) Cookie cookie2,
+                                            @RequestHeader("Cookie") String set_cookie) {
+
 
         Map<String, Object> response = new HashMap<>();
         // 쿠키
@@ -117,6 +119,7 @@ public class UserController {
         log.info("request : {}", request);
         log.info("cookies : {}", cookies);
         log.info("cookie2 : {}", cookie2);
+        log.info("set_cookie : {}", set_cookie);
 
         if(cookie2 != null){
             sessionId = cookie2.getValue();
