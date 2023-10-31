@@ -52,6 +52,8 @@ public class UserController {
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
 
+            log.info("session.getId() : {}", session.getId());
+
             addCookie(response, "JSESSIONID", session.getId());
             responseBody.put("result", true);
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
