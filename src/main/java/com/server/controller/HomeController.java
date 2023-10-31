@@ -1,44 +1,37 @@
 package com.server.controller;
 
 
-import com.server.model.InquiryDTO;
-import com.server.model.ProductDTO;
-import com.server.model.UserDTO;
-import com.server.response.MessageRes;
-import com.server.response.MessageResNotice;
-import com.server.model.NoticeDTO;
-import com.server.response.MessageResProduct;
+import com.server.model.*;
 import com.server.service.HomeService;
 import com.server.service.ProductService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"https://client-p34zpc52f-capstone-team-market.vercel.app/", "https://localhost:3001"})
 public class HomeController {
 
     private final HomeService homeService;
     private final ProductService productService;
-    private final SqlSession sqlSession;
 
-    /* 메인페이지 Carousel 이미지 */
+    /* 메인페이지 Carousel 이미지
     @GetMapping("/home/picture")
     public ResponseEntity<?> homeCarouselView() {
 
         return new ResponseEntity<>("Carousel 이미지", HttpStatus.OK);
     }
-
+ */
     /* 메인페이지 공지사항 리스트 */
     /* 메인 화면에서 보여지는 공지사항 리스트 (최신순으로 3개만 보내기) */
     @GetMapping("/home/notice")
@@ -49,22 +42,16 @@ public class HomeController {
     }
 
     /* 메인페이지 상품 리스트 */
-    /* 객체안 list원소의 배열의 길이는 12 즉 12개씩 보내야함 next는 12를 제외하고 보여줄 상품이 더있으면 true 없으면 false */
     @GetMapping("/home/product")
     public ResponseEntity<?> productView() {
-        int page = 1;
-        int pageSize = 12;
         int count = productService.getProductCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        log.info("상품 전체 개수 ( count ) : {}", count);
 
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getProduct(page);
+        List<ProductDTO> productList = productService.getHomeProduct();
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
-
-        // 현재 페이지에서 보내줄 상품 개수
-        int itemCount = 0;
 
         for (ProductDTO listDto : productList) {
             Map<String, Object> productMap = new LinkedHashMap<>();                 // 상품 정보들을 저장해 출력할 Map 선언
@@ -87,24 +74,12 @@ public class HomeController {
 
             // 응답 데이터에 상품 정보 추가
             responseList.add(productMap);
-
-            // 현재 페이지에서 보내준 상품 개수 증가
-            itemCount++;
-
-            // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
-            if (itemCount >= pageSize) {
-                page++;
-                log.info("{}", page);
-                break;
-            }
         }
         log.info("productList : {}", productList);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
-        response.put("next", itemCount >= pageSize);
 
-        log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -140,16 +115,18 @@ public class HomeController {
 
     /* 객체안 notice 원소의 배열의 길이는 몇개씩 보내도 상관없음(가능하면 10개 정도로 잘라서 보내기)
         next 는 앞서보여준 10개를 제외하고 보여줄 공지가 더있으면 true 없으면 false */
-    @GetMapping("/notice")
-    public ResponseEntity<?> noticeView() {
+    @GetMapping("/notice/page/{page}")
+    public ResponseEntity<?> noticeView(@PathVariable int page) {
 
-        int page = 1;
+        log.info("Request Page : {}", page);
         int pageSize = 10;
+        int offset = page * pageSize; // offset 계산
+
         int count = homeService.getNoticeCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        log.info("Notice Count : {}", count);
 
         // 서비스에서 공지 목록을 가져옴
-        List<NoticeDTO> noticeList = homeService.getNotice(page);
+        List<NoticeDTO> noticeList = homeService.getNotice(offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -171,59 +148,71 @@ public class HomeController {
 
             // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
             if (noticeCount >= pageSize) {
-                page++;
-                log.info("{}", page);
                 break;
             }
         }
-        log.info("while 문 밖의 page : {}", page);
         log.info("noticeList : {}", noticeList);
+        log.info("noticeCount : {}", noticeCount);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
         response.put("next", noticeCount >= pageSize);
+        response.put("page", page);
 
-        log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/inquiry")
-    public ResponseEntity<?> postInquiry(@RequestBody InquiryDTO dto, HttpSession session) {
+    public ResponseEntity<?> postInquiry(@RequestBody InquiryDTO dto, HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
-        if (session.getAttribute("dto") == null) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("JSESSIONID")) {
+                    String sessionId = cookie.getValue();
+                    log.info("Session Id (JSESSIONID) : {}", sessionId);
+
+                    /* 게시글 등록 서비스 호출 */
+                    HttpSession session = request.getSession();
+                    UserDTO reqDto = (UserDTO) session.getAttribute("dto");
+                    log.info("session user : {}", session.getAttribute("dto"));
+                    dto.setUserId(reqDto.getId());
+                    int flag = homeService.postInquiry(dto);
+
+                    if (flag == 0) {
+                        response.put("result", true);
+                        response.put("message", "문의가 접수 되었습니다..");
+                    } else {
+                        response.put("result", false);
+                        response.put("message", "문의 접수에 실패했습니다.");
+                    }
+                }
+            }
+        } else {
+            log.info("실패");
             response.put("result", false);
             response.put("message", "로그인 상태가 아닙니다.");
-            log.info("로그인 상태가 아님");
-        } else { // 세션이 있으면 여길 탈듯
-            /* 게시글 작성 서비스 호출 */
-            UserDTO reqDto = (UserDTO) session.getAttribute("dto");
-            log.info("session user : {}", session.getAttribute("dto"));
-            dto.setUserId(reqDto.getId());
-            int flag = homeService.postInquiry(dto);
-
-            if (flag == 0) {
-                response.put("result", true);
-                response.put("message", "문의가 접수 되었습니다..");
-            } else {
-                response.put("result", false);
-                response.put("message", "문의 접수에 실패했습니다.");
-            }
+            log.info("Session Id is Not Found.");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // 401 Unauthorized 응답을 보냄
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/transaction")
-    public ResponseEntity<?> transactionView() {
+    @GetMapping("/transaction/page/{page}")
+    public ResponseEntity<?> transactionView(@PathVariable int page) {
 
-        int page = 1;
+        log.info("Request Page : {}", page);
         int pageSize = 12;
+        int offset = page * pageSize; // offset 계산
+
         int count = productService.getTransactionCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        log.info("Transaction Count : {}", count);
 
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getTransaction(page);
+        List<ProductDTO> productList = productService.getTransaction(offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -264,24 +253,25 @@ public class HomeController {
             }
         }
         log.info("productList : {}", productList);
+        log.info("productList : {}", productList);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
         response.put("next", itemCount >= pageSize);
+        response.put("page", page);
 
-        log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/transaction/search/{search}")
-    public ResponseEntity<?> getTransactionBySearch(@PathVariable String search) {
-        int page = 1;
+    @GetMapping("/transaction/search/{search}/page/{page}")
+    public ResponseEntity<?> getTransactionBySearch(@PathVariable String search, @PathVariable int page) {
+
+        log.info("Request Page : {}", page);
         int pageSize = 12;
-        int count = productService.getTransactionCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        int offset = page * pageSize; // offset 계산
 
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getTransactionBySearch(search, page);
+        List<ProductDTO> productList = productService.getTransactionBySearch(search, offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -316,8 +306,6 @@ public class HomeController {
 
             // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
             if (itemCount >= pageSize) {
-                page++;
-                log.info("{}", page);
                 break;
             }
         }
@@ -326,20 +314,22 @@ public class HomeController {
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
         response.put("next", itemCount >= pageSize);
+        response.put("page", page);
 
         log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/rental")
-    public ResponseEntity<?> rentalView() {
-        int page = 1;
+    @GetMapping("/rental/page/{page}")
+    public ResponseEntity<?> rentalView(@PathVariable int page) {
+        log.info("Request Page : {}", page);
         int pageSize = 12;
+        int offset = page * pageSize; // offset 계산
+
         int count = productService.getRentalCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
-
+        log.info("Rental Count : {}", count);
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getRental(page);
+        List<ProductDTO> productList = productService.getRental(offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -374,30 +364,29 @@ public class HomeController {
 
             // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
             if (itemCount >= pageSize) {
-                page++;
-                log.info("{}", page);
                 break;
             }
         }
         log.info("productList : {}", productList);
+        log.info("itemCount : {}", itemCount);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
         response.put("next", itemCount >= pageSize);
+        response.put("page", page);
 
         log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/rental/search/{search}")
-    public ResponseEntity<?> getRentalBySearch(@PathVariable String search) {
-        int page = 1;
+    @GetMapping("/rental/search/{search}/page/{page}")
+    public ResponseEntity<?> getRentalBySearch(@PathVariable String search, @PathVariable int page) {
+        log.info("Request Page : {}", page);
         int pageSize = 12;
-        int count = productService.getRentalCount();
-        log.info("테이블 내 컬럼 개수 ( count ) : {}", count);
+        int offset = page * pageSize; // offset 계산
 
         // 서비스에서 상품 목록을 가져옴
-        List<ProductDTO> productList = productService.getRentalBySearch(search, page);
+        List<ProductDTO> productList = productService.getRentalBySearch(search, offset);
 
         // 응답 데이터 구성을 위한 리스트
         List<Map<String, Object>> responseList = new ArrayList<>();
@@ -432,18 +421,17 @@ public class HomeController {
 
             // 만약 현재 페이지에서 보내줄 상품 개수가 pageSize와 같거나 크다면 루프 종료
             if (itemCount >= pageSize) {
-                page++;
-                log.info("{}", page);
                 break;
             }
         }
         log.info("productList : {}", productList);
+        log.info("itemCount : {}", itemCount);
 
         Map<String, Object> response = new HashMap<>();
         response.put("list", responseList);
         response.put("next", itemCount >= pageSize);
+        response.put("page", page);
 
-        log.info("while 문 밖의 page : {}", page);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

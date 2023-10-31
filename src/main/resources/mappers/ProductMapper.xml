@@ -69,7 +69,21 @@
         ORDER BY PRODUCT_SEQ ASC
     </select>
 
-    <select id="getProduct" parameterType="int" resultType="com.server.model.ProductDTO">
+    <select id="getHomeProduct" parameterType="com.server.model.ProductDTO">
+        SELECT
+            PRODUCT_SEQ AS 'id',
+                PRODUCT_TITLE AS 'title',
+                PRODUCT_STATUS AS 'status',
+                PRODUCT_LINK AS 'list',
+                PRODUCT_PRICE AS 'price'
+        FROM
+            PRODUCT
+        ORDER BY PRODUCT_SEQ DESC
+        LIMIT 12
+    </select>
+
+    <select id="getProductWithOffset" parameterType="int" resultType="com.server.model.ProductDTO">
+        <![CDATA[
         SELECT
             PRODUCT_SEQ AS 'id',
             PRODUCT_TITLE AS 'title',
@@ -78,8 +92,11 @@
             PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
+        WHERE
+            PRODUCT_SEQ > #{offset}
         ORDER BY PRODUCT_SEQ ASC
-            LIMIT #{offset}, 12
+            LIMIT 12
+        ]]>
     </select>
 
     <select id="getProductBySearch" parameterType="Map" resultType="com.server.model.ProductDTO">
@@ -92,7 +109,7 @@
             PRODUCT_PRICE AS 'price'
         FROM
             PRODUCT
-        WHERE PRODUCT_TITLE LIKE UPPER(#{search})
+        WHERE REPLACE(LOWER(PRODUCT_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '')
         ORDER BY PRODUCT_SEQ ASC
             LIMIT #{offset}, 12
         ]]>
@@ -104,7 +121,7 @@
             COUNT(*)
         FROM
             PRODUCT
-        WHERE PRODUCT_TITLE LIKE UPPER(#{search})
+        WHERE REPLACE(LOWER(PRODUCT_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '')
         ]]>
     </select>
 
@@ -216,7 +233,7 @@
         FROM
             PRODUCT
         WHERE 1 = 1
-        AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '거래'
+        AND REPLACE(LOWER(PRODUCT_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '') AND PRODUCT_STATUS = '거래'
         ORDER BY PRODUCT_SEQ ASC
             LIMIT #{offset}, 12
         ]]>
@@ -248,7 +265,7 @@
         FROM
             PRODUCT
         WHERE 1 = 1
-          AND PRODUCT_TITLE LIKE UPPER(#{search}) AND PRODUCT_STATUS = '대여'
+          AND REPLACE(LOWER(PRODUCT_TITLE), ' ', '') LIKE REPLACE(LOWER(#{search}), ' ', '') AND PRODUCT_STATUS = '대여'
         ORDER BY PRODUCT_SEQ ASC
             LIMIT #{offset}, 12
         ]]>

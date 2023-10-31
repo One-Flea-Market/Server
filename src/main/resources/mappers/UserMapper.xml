@@ -8,7 +8,8 @@
             USER_NAME AS username,
             USER_EMAIL AS email,
             USER_ROLE AS role,
-            USER_PHONE AS phone_number
+            USER_PHONE AS phone_number,
+            USER_DATE AS 'date'
         FROM USER
         WHERE 1 = 1
           AND USER_EMAIL = #{email}
@@ -30,7 +31,8 @@
              USER_EMAIL,
              USER_PW,
              USER_ROLE,
-             USER_PHONE
+             USER_PHONE,
+             USER_DATE
              )
         VALUES
             (
@@ -39,7 +41,8 @@
              #{email},
              #{passWord},
              #{role},
-             #{phone_number}
+             #{phone_number},
+             #{date}
              )
     </insert>
 
@@ -48,15 +51,15 @@
             USER_EMAIL
         FROM USER
         WHERE 1 = 1
-          AND USER_EMAIL = #{email}
+          AND LOWER(USER_EMAIL) = LOWER(#{email})
     </select>
 
     <select id="nameCheck" parameterType="com.server.model.UserDTO" resultType="String">
         SELECT
-            USER_NAME
+            USER_NAME AS username
         FROM USER
         WHERE 1 = 1
-          AND USER_NAME = #{username}
+          AND LOWER(USER_NAME) = LOWER(#{username})
     </select>
 
     <select id="getMyProductCount" parameterType="com.server.model.ProductDTO" resultType="Int">
@@ -91,6 +94,15 @@
             PRODUCT_PRICE AS price
         FROM
             PRODUCT
+    </select>
+
+    <select id="checkLogin" parameterType="int" resultType="boolean">
+        SELECT
+            COUNT(*) > 0
+        FROM
+            USER
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
     </select>
 
 </mapper>

@@ -57,40 +57,38 @@ public class ProductService {
         return productMapper.getAllProduct();
     }
 
-    public List<ProductDTO> getProduct(int page) {
-        int offset = (page - 1) * 12;
-        log.info("offset : {}", offset);
-        return productMapper.getProduct(offset);
+    public List<ProductDTO> getHomeProduct(){
+        return productMapper.getHomeProduct();
     }
 
-    public List<ProductDTO> getTransaction(int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getProductWithOffset(int offset) {
+        log.info("offset : {}", offset);
+        return productMapper.getProductWithOffset(offset);
+    }
+
+    public List<ProductDTO> getTransaction(int offset) {
         log.info("offset : {}", offset);
         return productMapper.getTransaction(offset);
     }
 
-    public List<ProductDTO> getRental(int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getRental(int offset) {
         log.info("offset : {}", offset);
         return productMapper.getRental(offset);
     }
 
-    public List<ProductDTO> getProductBySearch(String search, int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getProductBySearch(String search, int offset) {
         log.info("offset : {}", offset);
         search = '%'+search+'%';
         return productMapper.getProductBySearch(search, offset);
     }
 
-    public List<ProductDTO> getTransactionBySearch(String search, int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getTransactionBySearch(String search, int offset) {
         log.info("offset : {}", offset);
         search = '%'+search+'%';
         return productMapper.getTransactionBySearch(search, offset);
     }
 
-    public List<ProductDTO> getRentalBySearch(String search, int page) {
-        int offset = (page - 1) * 12;
+    public List<ProductDTO> getRentalBySearch(String search, int offset) {
         log.info("offset : {}", offset);
         search = '%'+search+'%';
         return productMapper.getRentalBySearch(search, offset);

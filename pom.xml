@@ -11,7 +11,7 @@
     <groupId>com</groupId>
     <artifactId>server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>server</name>
     <description>server</description>
     <properties>
@@ -40,11 +40,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -54,22 +49,11 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com</groupId>
-            <artifactId>server</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/io.swagger/swagger-annotations -->
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>1.6.2</version>
+            <version>1.6.8</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -92,13 +76,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
-            <scope>provided</scope>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -111,8 +88,6 @@
             <version>2.4.0-b180830.0359</version> <!-- 사용하는 버전에 맞게 변경하세요 -->
         </dependency>
 
-
-
     </dependencies>
 
     <build>
@@ -120,14 +95,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.server.ServerApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

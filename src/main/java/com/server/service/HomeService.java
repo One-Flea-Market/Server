@@ -3,7 +3,6 @@ package com.server.service;
 import com.server.mapper.HomeMapper;
 import com.server.model.InquiryDTO;
 import com.server.model.NoticeDTO;
-import com.server.repository.NoticeDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,8 +32,7 @@ public class HomeService {
     }
 
     /* 공지사항 리스트 서비스 MyBatis */
-    public List<NoticeDTO> getNotice(int page) {
-        int offset = (page - 1) * 12;
+    public List<NoticeDTO> getNotice(int offset) {
         log.info("offset : {}", offset);
         return homeMapper.getNotice(offset);
     }

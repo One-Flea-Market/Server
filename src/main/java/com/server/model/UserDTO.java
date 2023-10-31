@@ -2,9 +2,6 @@ package com.server.model;
 
 import lombok.Data;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Data
 public class UserDTO {
     private int id;
@@ -13,4 +10,5 @@ public class UserDTO {
     private String passWord;
     private String role;
     private String phone_number;
+    private String date;
 }

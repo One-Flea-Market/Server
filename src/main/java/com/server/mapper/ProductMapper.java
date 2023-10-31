@@ -17,7 +17,8 @@ public interface ProductMapper {
     int getTransactionCount();
     int getRentalCount();
     int getSearchCount(@Param("search") String search);
-    List<ProductDTO> getProduct(@Param("offset") int offset);
+    List<ProductDTO> getProductWithOffset(@Param("offset") int offset);
+    List<ProductDTO> getHomeProduct();
     List<ProductDTO> getAllProduct();
     List<ProductDTO> getProductById(int id);
     int getUserIdByProductSeq(int id);
