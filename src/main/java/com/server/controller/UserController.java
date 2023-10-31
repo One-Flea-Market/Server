@@ -47,6 +47,7 @@ public class UserController {
         Map<String, Object> responseBody = new HashMap<>();
 
         UserDTO rspDto = userService.LoginUser(dto);
+
         if (rspDto != null) {
             /* 세션 생성 및 유효시간 설정 */
             HttpSession session = request.getSession();
