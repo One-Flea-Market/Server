@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -52,10 +51,11 @@ public class UserController {
             /* 세션 생성 및 유효시간 설정 */
             HttpSession session = request.getSession();
             session.setAttribute("dto", rspDto);
+            String IdString = String.valueOf(rspDto.getId());
 
-            log.info("session.getId() : {}", session.getId());
+            log.info("IdString : {}", IdString);
 
-            addCookie(response, "JSESSIONID", session.getId());
+            addCookie(response, "USER", IdString);
             responseBody.put("result", true);
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
         }
@@ -94,7 +94,7 @@ public class UserController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for(Cookie cookie : cookies) {
-                if(cookie.getName().equals("JSESSIONID")) {
+                if(cookie.getName().equals("USER")) {
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
                     response.addCookie(cookie);
@@ -107,9 +107,8 @@ public class UserController {
 
     /* 세션 체크 */
     @GetMapping("/check")
-    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(value = "JSESSIONID", required = false) Cookie cookie2,
+    public ResponseEntity<?> sessionCheck(HttpServletRequest request, @CookieValue(value = "USER", required = false) Cookie cookie2,
                                             @RequestHeader("Cookie") String set_cookie) {
-
 
         Map<String, Object> response = new HashMap<>();
         // 쿠키
@@ -123,7 +122,7 @@ public class UserController {
         log.info("cookies : {}", cookies);
         log.info("cookie2 : {}", cookie2);
         log.info("set_cookie : {}", set_cookie);
-
+        /*
         if(cookie2 != null){
             sessionId = cookie2.getValue();
 
@@ -151,21 +150,21 @@ public class UserController {
                 log.info("Session Id (JSESSIONID) : {}", sessionId);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
+*/
 
-/*
         if(cookies != null) {
             for (Cookie cookie : cookies) {
                 log.info("cookie : {}", cookie);
-                if(cookie.getName().equals("JSESSIONID")) {     // JSESSIONID 라는 이름을 가진 쿠키 조회
+                if(cookie.getName().equals("USER")) {     // USER 라는 이름을 가진 쿠키 조회
                     HttpSession session = request.getSession();
                     log.info("session : {} ", session);
                     user = (UserDTO) session.getAttribute("dto");   // user 객체에 dto 세션 내의 유저 정보 저장
-                    log.info("user", user);
+                    log.info("user : {}", user);
                     if(user == null) {  // user가 null 일 때, for문 탈출 ( 500 에러 위함 )
                         break;
                     }
+                    log.info("UserName : {}", user.getUsername());
                     userId = user.getId();  // user 객체에서 USER_ID 가져옴
-                    log.info("userId : {}", userId);
                     sessionId = cookie.getValue();  // sessionId에 현재 쿠키 값 저장
                     log.info("sessionId : {}", sessionId);
                     loginCheck = userService.checkLogin(userId);    // 실제 로그인 체크 (USER_ID를 이용해 레코드가 한개라도 일치하는게 있으면 true)
@@ -177,16 +176,15 @@ public class UserController {
         // log.info("loginCheck : {}", loginCheck);    // true or false
 
         if(sessionId != null) {     // sessionId not null
-            if(loginCheck == true) {    // loginCheck is true
+            if(loginCheck) {    // loginCheck is true
                 log.info("Now Login User Info : {}", user);
                 response.put("login", true);    // login : true
-                log.info("Session Id (JSESSIONID) : {}", sessionId);
+                log.info("Session Id (USER) : {}", sessionId);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
         } else {
             response.put("login", false);       // login : false
             log.info("Session Id is Not Found (Null).");
-        } */
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
